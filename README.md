@@ -150,10 +150,10 @@ Tham gia máy chủ Discord để cùng thảo luận, cập nhật thông tin v
 - Bộ thông số tối ưu Engine.ini từ **AlteriaX** ([WuWa-Configs](https://github.com/AlteriaX/WuWa-Configs) & [NTE-Configs](https://github.com/AlteriaX/NTE-Configs)).
 
 ## ⚠️ Lưu ý bản quyền
- 
+
 - Ứng dụng là công cụ mã nguồn mở độc lập hỗ trợ người dùng Linux, không thuộc quyền sở hữu của Kuro Games hay Hotta Studio.
 - Mọi thắc mắc hoặc báo lỗi liên quan đến Launcher, vui lòng tạo issue trên GitHub repository.
 
-## 📄 Giấy phép (License)
+## 📄 License
 
-Dự án này được phát hành theo giấy phép **[GNU General Public License v3.0 (GPLv3)](LICENSE)**. Bạn được tự do sử dụng, sửa đổi và chia sẻ mã nguồn với điều kiện các bản phái sinh cũng phải mở mã nguồn tương tự.
+_**[GNU General Public License v3.0 (GPLv3)](LICENSE)**. Bạn được tự do sử dụng, sửa đổi và chia sẻ mã nguồn với điều kiện các bản phái sinh cũng phải mở mã nguồn tương tự._
