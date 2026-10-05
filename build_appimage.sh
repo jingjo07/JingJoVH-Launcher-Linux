@@ -125,7 +125,6 @@ if [ -f "$TOOL_PATH" ]; then
         echo "Thử lại với --appimage-extract-and-run..."
         ARCH=x86_64 "$TOOL_PATH" --appimage-extract-and-run "$APP_DIR" "$SCRIPT_DIR/$OUTPUT_NAME"
     }
-    cp "$SCRIPT_DIR/$OUTPUT_NAME" "$SCRIPT_DIR/WuWaVH-Launcher-x86_64.AppImage" 2>/dev/null || true
     echo "=================================================="
     echo "   THÀNH CÔNG: $SCRIPT_DIR/$OUTPUT_NAME   "
     echo "=================================================="
