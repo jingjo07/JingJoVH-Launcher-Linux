@@ -31,12 +31,11 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
 
 - **Bộ sưu tập giao diện (Theme) riêng biệt**:
   - **Wuthering Waves**:
-    - _Cổ Kính (Classic Gold HUD)_: Thanh điều hướng cổ điển, viền kim loại vàng hoàng gia.
-    - _Hiện Đại (Modern Cyber Dock)_: Thanh dock thu gọn bên trái, hiệu ứng kính mờ và màu xanh Mint.
-    - _Thủy Mặc (DangDev Watercolor)_: Phong cách tranh thủy mặc Trung Hoa tinh tế và khung viền cổ phong.
+    - _Cổ Kính_: Thanh điều hướng cổ điển, viền kim loại vàng hoàng gia.
+    - _Hiện Đại_: Thanh dock thu gọn bên trái, hiệu ứng kính mờ và màu xanh Mint.
+    - _Thủy Mặc_: Phong cách tranh thủy mặc Trung Hoa tinh tế và khung viền cổ phong.
   - **Neverness to Everness (NTE)**:
-    - _Hethereau Metropolis_: Phong cách đô thị siêu nhiên Neverness to Everness với tông màu Neon Coral rực sáng.
-    - _Cyberpunk Glitch Night_: Giao diện viễn tưởng với ánh sáng Glitch Teal và lưới tọa độ tương lai.
+    - _Cyber_: Giao diện viễn tưởng với ánh sáng Glitch Teal và lưới tọa độ tương lai.
   - Video nền và nhạc nền sống động riêng biệt theo từng tựa game.
 
 - **Tối ưu hóa hiệu năng đồ họa (Engine.ini)**:
