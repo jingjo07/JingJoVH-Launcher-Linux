@@ -21,14 +21,15 @@ graphify-out/
 wuwa-paks/WuWaVH_99_P.pak
 frontend/assets/*.tmp
 
-# Local analysis/reference artifacts
+# Local analysis, tasks & reference artifacts
 .agents/
-references/*.exe
-references/dangdevvh-theme-draft/
+docs/
+tasks/
+references/
+reference/
 
 # IDE & OS
-.vscode/*
-!.vscode/settings.json
+.vscode/
 .idea/
 .DS_Store
 Thumbs.db
