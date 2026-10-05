@@ -7,13 +7,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-APP_DIR="$SCRIPT_DIR/build/WuWaVH.AppDir"
-OUTPUT_NAME="WuWaVH-Launcher-x86_64.AppImage"
+APP_DIR="$SCRIPT_DIR/build/JingJoVH.AppDir"
+OUTPUT_NAME="JingJoVH-Launcher-x86_64.AppImage"
 
 LAUNCHER_VERSION=$(PYTHONPATH="$SCRIPT_DIR" python3 -c 'from backend.version import LAUNCHER_VERSION; print(LAUNCHER_VERSION)')
 
 echo "=================================================="
-echo "   Đang đóng gói WuWaVH Launcher v${LAUNCHER_VERSION} thành AppImage   "
+echo "   Đang đóng gói JingJoVH Launcher v${LAUNCHER_VERSION} thành AppImage   "
 echo "=================================================="
 
 # 1. Tạo cấu trúc thư mục AppDir
@@ -32,10 +32,10 @@ echo "window.LAUNCHER_VERSION = \"$LAUNCHER_VERSION\";" >> "$SCRIPT_DIR/frontend
 cp -r "$SCRIPT_DIR/backend" "$APP_DIR/"
 cp -r "$SCRIPT_DIR/frontend" "$APP_DIR/"
 cp "$SCRIPT_DIR/launcher.py" "$APP_DIR/"
-cp "$SCRIPT_DIR/launcher.sh" "$APP_DIR/"
+cp "$SCRIPT_DIR/wuwa_launcher.sh" "$APP_DIR/"
 
-if [ -d "$SCRIPT_DIR/paks" ]; then
-    cp -r "$SCRIPT_DIR/paks" "$APP_DIR/"
+if [ -d "$SCRIPT_DIR/wuwa-paks" ]; then
+    cp -r "$SCRIPT_DIR/wuwa-paks" "$APP_DIR/"
 fi
 
 # Tích hợp sẵn Aria2c tốc độ cao vào AppImage nếu có trên máy build
@@ -48,29 +48,36 @@ if command -v aria2c &>/dev/null; then
 fi
 
 # Icon
+ICON_SRC=""
 if [ -f "$SCRIPT_DIR/wuwavh.png" ]; then
-    cp "$SCRIPT_DIR/wuwavh.png" "$APP_DIR/wuwavh.png"
-    cp "$SCRIPT_DIR/wuwavh.png" "$APP_DIR/.DirIcon"
-    cp "$SCRIPT_DIR/wuwavh.png" "$APP_DIR/usr/share/icons/hicolor/256x256/apps/wuwavh.png"
+    ICON_SRC="$SCRIPT_DIR/wuwavh.png"
 elif [ -f "$SCRIPT_DIR/frontend/assets/icon.png" ]; then
-    cp "$SCRIPT_DIR/frontend/assets/icon.png" "$APP_DIR/wuwavh.png"
-    cp "$SCRIPT_DIR/frontend/assets/icon.png" "$APP_DIR/.DirIcon"
-    cp "$SCRIPT_DIR/frontend/assets/icon.png" "$APP_DIR/usr/share/icons/hicolor/256x256/apps/wuwavh.png"
+    ICON_SRC="$SCRIPT_DIR/frontend/assets/icon.png"
+fi
+
+if [ -n "$ICON_SRC" ]; then
+    cp "$ICON_SRC" "$APP_DIR/jingjovh.png"
+    cp "$ICON_SRC" "$APP_DIR/wuwavh.png"
+    cp "$ICON_SRC" "$APP_DIR/.DirIcon"
+    cp "$ICON_SRC" "$APP_DIR/usr/share/icons/hicolor/256x256/apps/jingjovh.png"
+    cp "$ICON_SRC" "$APP_DIR/usr/share/icons/hicolor/256x256/apps/wuwavh.png"
 fi
 
 # Desktop Entry
-cat << 'EOF' > "$APP_DIR/wuwavh.desktop"
+cat << 'EOF' > "$APP_DIR/jingjovh.desktop"
 [Desktop Entry]
-Name=WuWaVH Launcher
-Comment=Wuthering Waves Vietnamese Mod Launcher
+Name=JingJoVH Launcher
+Comment=JingJo Vietnamese Mod Launcher for Linux
 Exec=AppRun %U
-Icon=wuwavh
+Icon=jingjovh
 Terminal=false
 Type=Application
 Categories=Game;Utility;
-StartupWMClass=wuwavh
+StartupWMClass=jingjovh
 EOF
-cp "$APP_DIR/wuwavh.desktop" "$APP_DIR/usr/share/applications/"
+cp "$APP_DIR/jingjovh.desktop" "$APP_DIR/usr/share/applications/"
+cp "$APP_DIR/jingjovh.desktop" "$APP_DIR/wuwavh.desktop" 2>/dev/null || true
+cp "$APP_DIR/jingjovh.desktop" "$APP_DIR/usr/share/applications/wuwavh.desktop" 2>/dev/null || true
 
 # AppRun Script
 cat << 'EOF' > "$APP_DIR/AppRun"
@@ -92,9 +99,9 @@ if command -v python3 &>/dev/null; then
     fi
 fi
 
-# Nếu thiếu WebKitGTK, chuyển sang launcher.sh (YAD/Zenity GUI hoặc CLI fallback)
-echo "[WuWaVH] WebKitGTK không khả dụng, đang khởi động chế độ dự phòng YAD/Zenity..."
-exec bash "$APPDIR/launcher.sh" "$@"
+# Nếu thiếu WebKitGTK, chuyển sang wuwa_launcher.sh (YAD/Zenity GUI hoặc CLI fallback)
+echo "[JingJoVH] WebKitGTK không khả dụng, đang khởi động chế độ dự phòng YAD/Zenity..."
+exec bash "$APPDIR/wuwa_launcher.sh" "$@"
 EOF
 chmod +x "$APP_DIR/AppRun"
 
@@ -118,6 +125,7 @@ if [ -f "$TOOL_PATH" ]; then
         echo "Thử lại với --appimage-extract-and-run..."
         ARCH=x86_64 "$TOOL_PATH" --appimage-extract-and-run "$APP_DIR" "$SCRIPT_DIR/$OUTPUT_NAME"
     }
+    cp "$SCRIPT_DIR/$OUTPUT_NAME" "$SCRIPT_DIR/WuWaVH-Launcher-x86_64.AppImage" 2>/dev/null || true
     echo "=================================================="
     echo "   THÀNH CÔNG: $SCRIPT_DIR/$OUTPUT_NAME   "
     echo "=================================================="

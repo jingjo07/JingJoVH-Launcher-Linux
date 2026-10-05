@@ -13,7 +13,8 @@ from backend.version import LAUNCHER_VERSION
 
 
 RELEASE_API = "https://api.github.com/repos/jingjo07/WuwaVH-Linux-Launcher/releases/latest"
-ASSET_NAME = "WuWaVH-Launcher-x86_64.AppImage"
+ASSET_NAME = "JingJoVH-Launcher-x86_64.AppImage"
+LEGACY_ASSET_NAME = "WuWaVH-Launcher-x86_64.AppImage"
 MAX_DOWNLOAD_SIZE = 300 * 1024 * 1024
 RELEASE_DOWNLOAD_PREFIX = "https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases/download/"
 
@@ -49,14 +50,14 @@ def _is_newer(latest, current):
 def check_update():
     request = urllib.request.Request(
         RELEASE_API,
-        headers={"Accept": "application/vnd.github+json", "User-Agent": "WuWaVH-Launcher"},
+        headers={"Accept": "application/vnd.github+json", "User-Agent": "JingJoVH-Launcher"},
     )
     with urllib.request.urlopen(request, timeout=12) as response:
         release = json.load(response)
 
     tag = release.get("tag_name", "")
     newer = _is_newer(tag, LAUNCHER_VERSION)
-    asset = next((item for item in release.get("assets", []) if item.get("name") == ASSET_NAME), None)
+    asset = next((item for item in release.get("assets", []) if item.get("name") in (ASSET_NAME, LEGACY_ASSET_NAME)), None)
     can_install = bool(
         newer and asset
         and re.fullmatch(r"sha256:[a-fA-F0-9]{64}", asset.get("digest", ""))

@@ -63,8 +63,8 @@ def sign_request(body_str: str) -> dict:
                              ).decode().rstrip("=").replace("+","-").replace("/","_")
     return {"X-Auth-Timestamp": ts, "X-Auth-Nonce": nonce, "X-Auth-Signature": sig}
 
-def mint_href(provider: str, version=None) -> str:
-    payload = {"box": PROXY_BOX, "provider": provider}
+def mint_href(provider: str, version=None, box=None) -> str:
+    payload = {"box": box or PROXY_BOX, "provider": provider}
     if version:
         payload["version"] = version
     body = json.dumps(payload, separators=(",", ":"))
@@ -129,8 +129,8 @@ def get_version_info() -> dict:
 
     # Fallback 2: Installed version in config
     try:
-        from . import game
-        installed_v = game.get_vh_version()
+        from . import wuwa_game
+        installed_v = wuwa_game.get_vh_version()
         if installed_v:
             return {
                 "version": installed_v,

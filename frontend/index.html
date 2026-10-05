@@ -4,13 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WuWaVH Launcher</title>
+  <title>JingJoVH Launcher</title>
   <link rel="stylesheet" href="style.css">
-  <link id="theme-stylesheet" rel="stylesheet" href="themes/classic/theme.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="themes/wuwa-classic/theme.css">
   <script src="version.js"></script>
 </head>
 
-<body class="theme-classic">
+<body class="theme-classic" data-game="wuwa">
 
   <!-- ── Background Video (Seamless Javascript Fade Loop) ── -->
   <div id="bg-fallback"></div>
@@ -45,6 +45,13 @@
 
     <!-- Top Right Controls -->
     <div class="topbar-right-controls">
+      <label class="game-select-wrap" for="game-select">
+        <span>Tựa game</span>
+        <select id="game-select" aria-label="Chọn tựa game">
+          <option value="wuwa">Wuthering Waves</option>
+          <option value="nte">Neverness to Everness</option>
+        </select>
+      </label>
       <!-- Cyber Topbar Controls (Game Files + BGM Player) -->
       <div class="cyber-top-controls cyber-only">
         <button class="cyber-game-files-btn" id="cyber-btn-game-files" title="Mở thư mục cài đặt game">
@@ -205,7 +212,28 @@
         </span>
         <span class="drawer-nav-text">GIAO DIỆN (THEME)</span>
       </button>
+      <button type="button" class="drawer-nav-item" id="drawer-item-winedll">
+        <span class="drawer-nav-icon">
+          <svg class="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+            <path d="M7 8h10M7 12h4"></path>
+          </svg>
+        </span>
+        <span class="drawer-nav-text">CÀI WINEDLLOVERRIDES</span>
+      </button>
     </div>
+
+    <section class="watercolor-news" aria-label="Thông báo phiên bản">
+      <h2>Thông báo</h2>
+      <div class="watercolor-news-meta">
+        <strong id="watercolor-news-version">v—</strong>
+        <time id="watercolor-news-date"></time>
+      </div>
+      <div id="watercolor-news-content">Đang tải thông tin phiên bản...</div>
+    </section>
 
     <!-- Modern Drawer Music Controls -->
     <div class="drawer-music-ctrl">
@@ -449,7 +477,7 @@
       </div>
     </div>
 
-    <!-- ── Cyber Neon Home View (Wuwa UI Remake) ── -->
+    <!-- ── Cyber Neon Home View ── -->
     <div id="cyber-home" class="cyber-only">
       <!-- Grid overlay -->
       <div class="cyber-grid-overlay"></div>
@@ -560,68 +588,46 @@
     </div>
 
     <!-- ── Context Menu (Shared) ── -->
-    <div id="ctx-menu">
-      <div class="ctx-item" id="ctx-update">
-        <span class="ctx-icon">
-          <svg class="theme-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <polyline points="1 20 1 14 7 14"></polyline>
-            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-          </svg>
-        </span> Cập nhật Việt Hoá
-      </div>
-      <div class="ctx-item" id="ctx-winedlloverrides">
-        <span class="ctx-icon">
-          <svg class="theme-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-            <path d="M7 8h10M7 12h4"></path>
-          </svg>
-        </span> Cài WINEDLLOVERRIDES
-      </div>
-      <div class="ctx-item" id="ctx-update-launcher">
-        <span class="ctx-icon">
-          <svg class="theme-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2">
-            <polygon
-              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-            </polygon>
-          </svg>
-        </span> Cập nhật Media
-      </div>
-      <div class="ctx-item" id="ctx-check-launcher-update">
-        <span class="ctx-icon" aria-hidden="true">↻</span> <span id="ctx-launcher-update-label">Cập nhật Launcher</span>
-      </div>
-      <div class="ctx-item" id="ctx-kill">
-        <span class="ctx-icon">
-          <svg class="theme-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </span> Buộc thoát game
-      </div>
-      <div class="ctx-item" id="ctx-credits">
-        <span class="ctx-icon">
-          <svg class="theme-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </span> Thông tin &amp; Tác giả
-      </div>
-      <div class="ctx-item danger" id="ctx-uninstall">
-        <span class="ctx-icon">
-          <svg class="theme-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2">
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-          </svg>
-        </span> Gỡ cài đặt Việt Hoá
-      </div>
+    <div id="ctx-menu" role="menu" aria-label="Tùy chọn nhanh">
+      <section class="ctx-group" aria-labelledby="ctx-group-update">
+        <div class="ctx-group-title" id="ctx-group-update">Cập nhật</div>
+        <button type="button" class="ctx-item" id="ctx-update" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 9M5.5 15A7 7 0 0 0 18 17.5l2-2.5"/></svg></span><span>Cập nhật Việt Hoá</span>
+        </button>
+        <button type="button" class="ctx-item" id="ctx-update-launcher" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 17 5-5 4 4 2-2 5 4"/></svg></span><span>Cập nhật Media</span>
+        </button>
+        <button type="button" class="ctx-item" id="ctx-check-launcher-update" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></span><span id="ctx-launcher-update-label">Cập nhật Launcher</span>
+        </button>
+      </section>
+
+      <section class="ctx-group" aria-labelledby="ctx-group-game">
+        <div class="ctx-group-title" id="ctx-group-game">Trò chơi</div>
+        <button type="button" class="ctx-item" id="ctx-game-paths" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v2"/></svg></span><span>Cấu hình đường dẫn</span>
+        </button>
+        <button type="button" class="ctx-item" id="ctx-winedlloverrides" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9h10M7 13h5"/></svg></span><span>Cài WINEDLLOVERRIDES</span>
+        </button>
+        <button type="button" class="ctx-item" id="ctx-kill" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg></span><span>Buộc thoát game</span>
+        </button>
+      </section>
+
+      <section class="ctx-group" aria-labelledby="ctx-group-info">
+        <div class="ctx-group-title" id="ctx-group-info">Thông tin</div>
+        <button type="button" class="ctx-item" id="ctx-credits" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></span><span>Thông tin &amp; Tác giả</span>
+        </button>
+      </section>
+
+      <section class="ctx-group ctx-group-danger" aria-labelledby="ctx-group-danger">
+        <div class="ctx-group-title" id="ctx-group-danger">Quản lý cài đặt</div>
+        <button type="button" class="ctx-item danger" id="ctx-uninstall" role="menuitem">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6M14 11v6"/></svg></span><span>Gỡ cài đặt Việt Hoá</span>
+        </button>
+      </section>
     </div>
 
   </div>
@@ -685,8 +691,16 @@
           </div>
         </div>
 
+        <fieldset id="nte-common-options" class="nte-common-options">
+          <legend>TÙY CHỌN CHUNG (KHÔNG BẮT BUỘC)</legend>
+          <label><input type="checkbox" id="nte-common-device-profiles"> Mở thiết lập Lumen</label>
+          <label><input type="checkbox" id="nte-common-game"> Bỏ video khởi động</label>
+          <label><input type="checkbox" id="nte-common-input"> Tắt mouse smoothing/FOV scaling</label>
+        </fieldset>
+
         <!-- Big Action Button -->
         <button class="perf-action-btn" id="perf-apply-btn">ÁP DỤNG PRESET</button>
+        <button class="perf-tool-btn danger" id="nte-perf-restore-btn">KHÔI PHỤC CẤU HÌNH GỐC</button>
       </div>
 
       <!-- SUBVIEW: ADVANCED MODE -->
@@ -1104,13 +1118,20 @@
   <!-- ── Game path modal ── -->
   <div id="path-modal">
     <div class="path-card">
-      <div class="path-title">⚠ Không tìm thấy thư mục game</div>
-      <div class="path-desc">
+      <div class="path-title" id="path-title">Cấu hình đường dẫn game</div>
+      <div class="path-desc" id="path-desc">
         Nhập đường dẫn thư mục Wuthering Waves (thư mục chứa Client/, Binaries/...):
       </div>
       <div class="path-input-wrap">
         <input type="text" class="path-input" id="path-input" placeholder="/home/user/Games/WutheringWaves">
         <button class="btn-modal primary" onclick="submitPath()">OK</button>
+      </div>
+      <label class="prefix-input-wrap" id="prefix-input-wrap" for="prefix-input">
+        <span>Wine/Proton prefix (tự nhận Heroic hoặc nhập thủ công)</span>
+        <input type="text" class="path-input" id="prefix-input" placeholder="/home/user/Games/Heroic/Prefixes/NTE">
+      </label>
+      <div class="path-modal-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+        <button type="button" class="btn-modal secondary" id="btn-modal-winedll" style="flex: 1; padding: 7px 12px; font-size: 12px;">Cài WINEDLLOVERRIDES (winhttp=n,b)</button>
       </div>
       <div class="modal-status" id="path-status"></div>
     </div>
@@ -1123,11 +1144,10 @@
       <div class="launcher-desc">Chọn ứng dụng để khởi chạy Wuthering Waves cùng cấu hình Proton / Wine:</div>
 
       <div class="launcher-options">
-        <div class="launcher-option-card" id="opt-steam" onclick="selectLauncher('steam')">
+        <div class="launcher-option-card" id="opt-steam" onclick="selectLauncher(activeGameId === 'nte' ? 'official' : 'steam')">
           <div class="launcher-opt-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-              <path
-                d="M12 2a10 10 0 0 0-10 10c0 4.7 3.25 8.65 7.66 9.72l2.45-3.57a3.5 3.5 0 0 1-.11-1.15l-3.32-1.39a2.5 2.5 0 1 1 .63-1.52l3.4 1.43a3.5 3.5 0 1 1 5.94 1.98l-3.53 2.47A10 10 0 1 0 12 2zm3.5 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
+              <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.029 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0z" />
             </svg>
           </div>
           <div class="launcher-opt-info">
@@ -1135,6 +1155,19 @@
             <div class="launcher-opt-detail" id="steam-status-detail">Chạy qua Steam Runtime (Headless)</div>
           </div>
           <span class="launcher-opt-badge" id="steam-badge">Khuyên dùng</span>
+        </div>
+
+        <div class="launcher-option-card" id="opt-nte-steam" onclick="selectLauncher('steam')">
+          <div class="launcher-opt-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.494 0 4.524 2.029 4.524 4.527s-2.03 4.525-4.524 4.525h-.105l-4.076 2.911c0 .052.004.105.004.159 0 1.875-1.515 3.396-3.39 3.396-1.635 0-3.016-1.173-3.331-2.727L.436 15.27C1.862 20.307 6.486 24 11.979 24c6.627 0 11.999-5.373 11.999-12S18.606 0 11.979 0z"/>
+            </svg>
+          </div>
+          <div class="launcher-opt-info">
+            <div class="launcher-opt-name">Steam</div>
+            <div class="launcher-opt-detail" id="nte-steam-status-detail">Quét Steam AppID 4508340</div>
+          </div>
+          <span class="launcher-opt-badge" id="nte-steam-badge">Kiểm tra...</span>
         </div>
 
         <div class="launcher-option-card" id="opt-heroic" onclick="selectLauncher('heroic')">
@@ -1163,8 +1196,8 @@
     <div class="credit-card">
       <div class="credit-header">
         <div class="credit-badge">THÔNG TIN DỰ ÁN</div>
-        <div class="credit-title">✦ WuWaVH Launcher Linux ✦</div>
-        <div class="credit-desc">Dự án Việt Hoá Wuthering Waves &amp; Trình khởi chạy tối ưu cho Linux</div>
+        <div class="credit-title">✦ JingJoVH Launcher Linux ✦</div>
+        <div class="credit-desc">Trình khởi chạy &amp; Cài đặt Việt Hoá Game trên Linux</div>
       </div>
 
       <div class="credit-list">
@@ -1208,7 +1241,7 @@
             </svg>
           </div>
           <div class="credit-info">
-            <div class="credit-role">Cộng đồng Discord WuWaVH</div>
+            <div class="credit-role">Cộng đồng Discord JingJoVH</div>
             <div class="credit-author discord-link">discord.gg/uNRyaHJR6 <span class="credit-ext-arrow">↗</span></div>
           </div>
         </div>

@@ -12,8 +12,8 @@ gi.require_version("GdkPixbuf", "2.0")
 
 from gi.repository import Gtk, WebKit2, GLib, Gdk, GdkPixbuf
 
-GLib.set_prgname("wuwavh-launcher")
-GLib.set_application_name("WuWaVH Launcher")
+GLib.set_prgname("jingjovh")
+GLib.set_application_name("JingJoVH Launcher")
 
 import sys, os, json, threading, time, subprocess
 
@@ -24,9 +24,9 @@ BUNDLED_ASSETS_DIR = os.path.join(FRONTEND_DIR, "assets")
 USER_ASSETS_DIR    = os.path.expanduser("~/.config/wuwavh/assets")
 
 sys.path.insert(0, BASE_DIR)
-from backend import downloader, game, performance, version, launcher_update
+from backend import downloader, game_context, launcher_update, version, wuwa_game, wuwa_performance
 
-PAK_DIR = game.get_paks_dir()
+PAK_DIR = wuwa_game.get_paks_dir()
 
 def get_effective_assets_dir() -> str:
     """Get assets dir for WebKit media. Prioritizes user updated media if present, else bundled."""
@@ -84,10 +84,16 @@ class IPC:
                 return {}
 
             case "get_version":
-                return downloader.get_version_info()
+                return game_context.get_version_info()
 
             case "get_status":
-                return game.get_status()
+                return game_context.get_status()
+
+            case "get_games":
+                return game_context.get_games()
+
+            case "set_active_game":
+                return game_context.set_active_game(data.get("game", ""))
 
             case "check_launcher_update":
                 return launcher_update.check_update()
@@ -100,7 +106,7 @@ class IPC:
                 return {"status": "started"}
 
             case "open_game_folder":
-                game.open_game_folder()
+                game_context.open_game_folder()
                 return {"ok": True}
 
             case "open_url":
@@ -114,21 +120,28 @@ class IPC:
             case "set_game_path":
                 path = data.get("path", "")
                 if os.path.isdir(path):
-                    game.set_game_path(path)
+                    game_context.set_game_path(path)
                     return {"ok": True}
                 raise ValueError("Thư mục không hợp lệ")
 
+            case "set_game_prefix":
+                path = data.get("path", "")
+                if os.path.isdir(path):
+                    return game_context.set_prefix_path(path)
+                raise ValueError("Wine/Proton prefix không hợp lệ")
+
             case "launch_game":
-                ok = game.launch_game()
+                ok = game_context.launch_game()
                 return {"ok": ok}
 
             case "force_kill" | "kill_game":
-                game.force_kill_game()
+                game_context.force_kill_game()
                 return {"ok": True, "killed": True}
 
             case "update_vh" | "update_mod":
                 # Run in separate thread so _dispatch_action returns immediately
-                threading.Thread(target=self._do_update_vh, daemon=True).start()
+                target = self._do_update_nte if game_context.get_active_game_id() == "nte" else self._do_update_vh
+                threading.Thread(target=target, daemon=True).start()
                 return {"status": "started"}
 
             case "update_launcher_assets" | "update_assets":
@@ -136,15 +149,15 @@ class IPC:
                 return {"status": "started"}
 
             case "set_vh_version":
-                game.set_vh_version(data.get("version", ""))
+                game_context.set_vh_version(data.get("version", ""))
                 return {"ok": True}
 
             case "install_paks" | "install_mod":
-                installed = game.install_paks(PAK_DIR)
+                installed = wuwa_game.install_paks(PAK_DIR)
                 return {"installed": installed}
 
             case "uninstall_vh" | "uninstall_mod":
-                removed = game.uninstall_paks()
+                removed = game_context.uninstall_paks()
                 return {"removed": removed}
 
             # ── Font Management ──────────────────────────────────
@@ -157,82 +170,82 @@ class IPC:
                 return {"path": path}
 
             case "get_font_preview":
-                return game.get_font_preview()
+                return wuwa_game.get_font_preview()
 
             case "install_font":
                 font_path = data.get("path", "")
                 if not font_path or not os.path.isfile(font_path):
                     raise ValueError("File font không hợp lệ")
-                result = game.install_custom_font(font_path)
+                result = wuwa_game.install_custom_font(font_path)
                 return result
 
             case "install_font_from_pak":
                 pak_path = data.get("path", "")
                 if not pak_path or not os.path.isfile(pak_path):
                     raise ValueError("File PAK không hợp lệ")
-                result = game.install_font_from_pak(pak_path)
+                result = wuwa_game.install_font_from_pak(pak_path)
                 return result
 
             case "install_default_font":
-                result = game.install_default_font()
+                result = wuwa_game.install_default_font()
                 return result
 
             case "get_font_status":
-                return game.get_font_status()
+                return wuwa_game.get_font_status()
 
             # ── Launcher Selection (Steam / Heroic) ───────────────
             case "get_launcher_info":
-                return game.get_launcher_info()
+                return game_context.get_launcher_info()
 
             case "set_launcher":
                 launcher_type = data.get("launcher", "steam")
-                return game.set_preferred_launcher(launcher_type)
+                return game_context.set_preferred_launcher(launcher_type)
 
             # ── Theme Management ──────────────────────────────────
             case "get_theme":
-                return {"theme": game.get_theme()}
+                return {"theme": game_context.get_theme()}
 
             case "set_theme":
                 theme_id = data.get("theme", "modern")
-                return game.set_theme(theme_id)
+                return game_context.set_theme(theme_id)
 
             # ── DirectX 11 Mode ───────────────────────────────────
             case "get_dx11_mode":
-                return {"use_dx11": game.get_dx11_mode()}
+                return {"use_dx11": wuwa_game.get_dx11_mode()}
 
             case "set_dx11_mode":
                 enabled = data.get("enabled", True)
-                return game.set_dx11_mode(enabled)
+                return wuwa_game.set_dx11_mode(enabled)
 
             # ── CSharp Environment Mode ───────────────────────────
             case "get_csharp_env_mode":
-                return {"use_csharp_env": game.get_csharp_env_mode()}
+                return {"use_csharp_env": wuwa_game.get_csharp_env_mode()}
 
             case "set_csharp_env_mode":
                 enabled = data.get("enabled", True)
-                return game.set_csharp_env_mode(enabled)
+                return wuwa_game.set_csharp_env_mode(enabled)
 
             # ── Wine DLL Overrides (WINEOVERDRIVE) ────────────────
             case "install_wine_overrides" | "install_wine_overdrive":
-                return game.install_wine_dll_overrides()
+                return game_context.install_wine_dll_overrides()
 
             # ── High Performance Mode ─────────────────────────────
             case "get_perf_settings":
-                return performance.get_perf_settings()
+                return game_context.get_perf_settings()
 
             case "save_perf_settings":
                 new_settings = data.get("settings", {})
-                return performance.save_and_apply_perf_settings(new_settings)
+                return wuwa_performance.save_and_apply_perf_settings(new_settings)
 
             case "restore_perf_settings":
-                return performance.restore_default_ini()
+                return game_context.restore_perf_settings()
 
             case "apply_perf_preset":
                 preset_name = data.get("preset", "default")
-                return performance.apply_perf_preset(preset_name)
+                return game_context.apply_perf_preset(preset_name, data.get("common"))
 
             case "get_engine_ini_text" | "get_engine_ini":
-                return {"text": performance.get_current_engine_ini_text()}
+                return {"text": wuwa_performance.get_current_engine_ini_text()}
 
             case "ping":
                 return {"pong": True}
@@ -390,20 +403,45 @@ class IPC:
                 })
 
             # Automatically copy and install downloaded paks & dll into the game directory
-            installed = game.install_paks(PAK_DIR)
+            installed = wuwa_game.install_paks(PAK_DIR)
             if version:
-                game.set_vh_version(version)
+                wuwa_game.set_vh_version(version)
 
             self.emit("update_done", {"version": version, "installed": installed})
 
         except Exception as e:
             self.emit("update_error", {"error": str(e)})
 
+    def _do_update_nte(self):
+        """Install NTE translation through the shared progress events."""
+        from backend import nte_downloader
+
+        try:
+            info = nte_downloader.get_version_info()
+            version = info["version"]
+
+            def _progress(done, total):
+                self.emit("update_progress", {
+                    "phase": "download",
+                    "file": "NTEVH",
+                    "label": "Bản dịch NTE",
+                    "step": 0,
+                    "total": 1,
+                    "progress": done / total if total else 0,
+                    "mb_done": round(done / 1_048_576, 1),
+                    "mb_total": round(total / 1_048_576, 1),
+                })
+
+            result = nte_downloader.install(version, _progress)
+            self.emit("update_done", {"version": version, "installed": result["installed"]})
+        except Exception as exc:
+            self.emit("update_error", {"error": str(exc)})
+
     def _do_update_assets(self):
-        """Download official Kuro Games background video and music assets with progress events."""
+        """Download background video and music assets with progress events."""
         writable_assets = get_writable_assets_dir()
         try:
-            web_assets = downloader.get_web_assets()
+            web_assets = game_context.get_web_assets()
             total_assets = len(web_assets)
             for idx, (filename, url, label) in enumerate(web_assets):
                 dest = os.path.join(writable_assets, filename)
@@ -507,7 +545,7 @@ class LauncherWindow(Gtk.Window):
         self.set_default_size(self.WIN_W, self.WIN_H)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(False)
-        self.set_title(f"WuWaVH Launcher v{version.LAUNCHER_VERSION}")
+        self.set_title(f"JingJoVH Launcher v{version.LAUNCHER_VERSION}")
 
         # Set App Window Icon from frontend/assets/icon.png
         icon_path = os.path.join(ASSETS_DIR, "icon.png")

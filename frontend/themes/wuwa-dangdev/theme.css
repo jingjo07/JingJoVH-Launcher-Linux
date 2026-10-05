@@ -1,0 +1,600 @@
+/* DangDevVH launcher layout, adapted to the controls and data in WuWaVH. */
+@import url("../wuwa-modern/theme.css");
+
+@font-face {
+  font-family: "Jade Source Sans";
+  src: url("assets/SourceSans3.ttf") format("truetype");
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Jade Charm";
+  src: url("assets/Charm-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+body.theme-dangdev {
+  --font-main: "Jade Source Sans", "Noto Sans", sans-serif;
+  --wc-ink: #f7f2e8;
+  --wc-muted: #cec8bd;
+  --wc-jade: #e5cd98;
+  --wc-rose: #efae98;
+  --wc-rule: #84765c;
+  --wc-panel: rgba(20, 19, 17, .94);
+  --mint-bright: #e5cd98;
+  --mint-mid: #bb986b;
+  --mint-dark: #943e2e;
+  --mint-glow: rgba(229, 205, 152, .28);
+  --navy-card: rgba(23, 22, 20, .94);
+  --navy-border: rgba(194, 164, 117, .43);
+  --theme-accent: #e5cd98;
+  --theme-accent-bright: #f4dfb7;
+  --theme-accent-dark: #943e2e;
+  --theme-accent-glow: rgba(214, 186, 141, .28);
+  --theme-accent-bg: rgba(214, 186, 141, .1);
+  --theme-accent-btn-text: #241e19;
+  --radius-card: 8px;
+  --radius-btn: 5px;
+  color: #f5eee4;
+  background: #171614;
+}
+
+body.theme-dangdev #bg-video-a,
+body.theme-dangdev #bg-video-b,
+body.theme-dangdev #bg-fallback {
+  filter: none;
+}
+
+body.theme-dangdev #bg-overlay {
+  background: linear-gradient(90deg, rgba(8, 7, 6, .38), transparent 30%, rgba(8, 7, 6, .15) 62%, rgba(8, 7, 6, .48)),
+    linear-gradient(0deg, rgba(6, 5, 4, .64), transparent 35%);
+}
+
+body.theme-dangdev #topbar {
+  height: 52px;
+  background: linear-gradient(180deg, rgba(13, 12, 11, .88), rgba(13, 12, 11, .5));
+  border-bottom: 1px solid rgba(200, 172, 126, .2);
+  box-shadow: none;
+}
+
+body.theme-dangdev .logo-corner-img {
+  display: block;
+  max-height: 39px;
+  filter: drop-shadow(0 0 10px rgba(229, 205, 152, .7)) grayscale(1) brightness(1.65);
+}
+
+body.theme-dangdev .logo-wrap:hover .logo-corner-img {
+  filter: drop-shadow(0 0 14px rgba(229, 205, 152, .9)) grayscale(1) brightness(1.8) !important;
+}
+
+body.theme-dangdev #btn-game-files,
+body.theme-dangdev .game-select-wrap,
+body.theme-dangdev .wctrl {
+  color: #f5eee4;
+  background: rgba(20, 19, 17, .8);
+  border: 1px solid rgba(206, 174, 126, .46);
+  border-radius: 3px;
+}
+
+body.theme-dangdev #modern-drawer-backdrop {
+  display: none !important;
+}
+
+body.theme-dangdev #sidebar-dock {
+  display: flex;
+  left: 8px;
+  top: 57px;
+  bottom: 8px;
+  width: 52px;
+  padding: 5px;
+  border: 1px solid rgba(200, 172, 126, .48);
+  border-radius: 9px;
+  background: linear-gradient(145deg, rgba(29, 27, 24, .96), rgba(14, 13, 12, .98));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .45);
+}
+
+body.theme-dangdev .dock-inner { background: transparent; }
+
+body.theme-dangdev .dock-btn {
+  color: #d6ba8d;
+  border-radius: 5px;
+}
+
+body.theme-dangdev .dock-btn:hover,
+body.theme-dangdev .dock-btn.tab-btn.active {
+  color: #fff1db;
+  background: #943e2e;
+}
+
+body.theme-dangdev .dock-btn.tab-btn.active {
+  box-shadow: 0 4px 14px rgba(148, 62, 46, .38);
+}
+
+body.theme-dangdev .dock-btn:focus-visible {
+  outline-color: #e5cd98;
+}
+
+body.theme-dangdev #sidebar-drawer,
+body.theme-dangdev #sidebar-drawer.open {
+  top: 57px;
+  bottom: 8px;
+  left: 8px;
+  width: 222px;
+  padding: 12px 8px 8px;
+  gap: 8px;
+  border: 1px solid rgba(200, 172, 126, .48);
+  border-radius: 9px;
+  color: #f2ece2;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, .015) 3px 4px),
+    linear-gradient(145deg, rgba(29, 27, 24, .96), rgba(14, 13, 12, .98));
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(0, 0, 0, .7);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.theme-dangdev #sidebar-drawer {
+  transform: translateX(calc(-100% - 32px));
+}
+
+body.theme-dangdev #sidebar-drawer.open {
+  transform: none;
+}
+
+body.theme-dangdev .drawer-collapse-btn {
+  display: flex;
+  position: absolute;
+  top: 62px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  color: #e8cf9f;
+  background: #171614;
+  border: 1px solid #bda374;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+body.theme-dangdev .drawer-header {
+  padding: 3px 5px 11px;
+  border-bottom: 1px solid rgba(214, 186, 141, .58);
+  background: transparent;
+}
+
+body.theme-dangdev .drawer-avatar {
+  border: 1px solid #bfa06f;
+  border-radius: 50%;
+  background: #242321;
+}
+
+body.theme-dangdev .drawer-avatar img { display: block; }
+
+body.theme-dangdev .drawer-main-title {
+  color: #f5eee4;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+body.theme-dangdev .drawer-sub-title,
+body.theme-dangdev .drawer-menu-label {
+  color: #d9cfc0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .07em;
+}
+
+body.theme-dangdev .drawer-menu-label {
+  padding: 11px 8px 3px;
+}
+
+body.theme-dangdev .drawer-nav {
+  flex: 0 0 auto;
+  gap: 6px;
+}
+
+body.theme-dangdev .drawer-nav-item {
+  min-height: 37px;
+  color: #f2ece2;
+  background: rgba(20, 19, 18, .78);
+  border: 1px solid rgba(177, 151, 113, .37);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+body.theme-dangdev .drawer-nav-item:hover {
+  color: #fff5e8;
+  border-color: #d4b481;
+  background: rgba(98, 51, 38, .82);
+}
+
+body.theme-dangdev .drawer-nav-item.active {
+  color: #fff4e5;
+  border-color: #e0a478;
+  background: linear-gradient(90deg, #9d3d2f, #783126);
+  box-shadow: inset 3px 0 #f1cda1;
+}
+
+body.theme-dangdev .drawer-nav-icon {
+  color: #e4c48d;
+}
+
+body.theme-dangdev .drawer-nav-icon svg {
+  background: currentColor;
+  mask: url("assets/icons.png") var(--wc-icon, 0%) center / 1600% 100% no-repeat;
+  -webkit-mask: url("assets/icons.png") var(--wc-icon, 0%) center / 1600% 100% no-repeat;
+}
+
+body.theme-dangdev .drawer-nav-icon svg > * { visibility: hidden; }
+body.theme-dangdev #drawer-item-home { --wc-icon: calc(200% / 15); }
+body.theme-dangdev #drawer-item-perf { --wc-icon: calc(1100% / 15); }
+body.theme-dangdev #drawer-item-theme { --wc-icon: calc(700% / 15); }
+body.theme-dangdev #drawer-item-winedll { --wc-icon: calc(1300% / 15); }
+
+body.theme-dangdev #drawer-item-winedll,
+body.theme-dangdev .drawer-vol-label {
+  display: none !important;
+}
+
+body.theme-dangdev .watercolor-news {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 228px;
+  min-height: 100px;
+  margin-top: auto;
+  padding: 12px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(204, 174, 126, .56);
+  border-radius: 5px;
+  background: rgba(25, 24, 22, .7);
+}
+
+body.theme-dangdev .watercolor-news h2 {
+  margin: 0 0 8px;
+  color: #fff4e5;
+  font: 700 17px "Jade Charm", "Jade Source Sans", sans-serif;
+  text-align: center;
+}
+
+body.theme-dangdev .watercolor-news-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: #d0a967;
+  font-size: 11px;
+}
+
+body.theme-dangdev .watercolor-news-meta time {
+  color: #9e978f;
+  font-size: 10px;
+}
+
+body.theme-dangdev #watercolor-news-content {
+  margin-top: 12px;
+  overflow: auto;
+  color: #f1e9dc;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+body.theme-dangdev .drawer-music-ctrl {
+  flex: 0 0 auto;
+  min-height: 52px;
+  padding: 7px;
+  border: 1px solid rgba(204, 174, 126, .56);
+  border-radius: 5px;
+  background: rgba(22, 21, 19, .78);
+}
+
+body.theme-dangdev .btn-drawer-music {
+  color: #e7ce9e;
+  border-color: rgba(204, 174, 126, .54);
+}
+
+body.theme-dangdev #modern-home {
+  inset: auto 24px 19px auto;
+  width: 390px;
+  max-width: calc(100vw - 265px);
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+body.theme-dangdev .modern-intro,
+body.theme-dangdev .modern-panel-heading,
+body.theme-dangdev .modern-news-card,
+body.theme-dangdev .modern-config-heading {
+  display: none;
+}
+
+body.theme-dangdev .modern-hero-stack {
+  width: 100%;
+  align-items: stretch;
+  gap: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.theme-dangdev #launch-options-modern {
+  min-height: 48px;
+  padding: 5px 10px;
+  border: 1px solid rgba(214, 186, 141, .66);
+  border-radius: 5px;
+  background: rgba(22, 19, 17, .91);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .36);
+}
+
+body.theme-dangdev .launch-toggle-card {
+  color: #e6d4b8;
+  font-size: 12px;
+}
+
+body.theme-dangdev .launch-toggle-card .toggle-switch-pill {
+  background: #302820;
+  border: 1px solid #9d7b50;
+  box-shadow: none;
+}
+
+body.theme-dangdev .launch-toggle-card .toggle-thumb {
+  background: #dbcaab;
+}
+
+body.theme-dangdev .launch-toggle-card.active .toggle-switch-pill {
+  background: #963d2c;
+  border-color: #dbb27c;
+  box-shadow: 0 0 9px rgba(150, 61, 44, .35);
+}
+
+body.theme-dangdev .launch-toggle-card.active .toggle-thumb {
+  background: #fff4e4;
+}
+
+body.theme-dangdev .launch-toggle-card.active .toggle-label {
+  color: #f4dfb7;
+}
+
+body.theme-dangdev .modern-action-row {
+  gap: 9px;
+}
+
+body.theme-dangdev .btn-modern-menu {
+  width: 56px;
+  height: 56px;
+  border: 1px solid #bca277;
+  border-radius: 50%;
+  color: #f3d798;
+  background: rgba(21, 20, 18, .9);
+}
+
+body.theme-dangdev .btn-modern-play {
+  height: 56px;
+  flex: 1;
+  color: #fff1df;
+  background: linear-gradient(180deg, #a64032, #833126);
+  border: 3px double #d4ad78;
+  border-radius: 32px;
+  box-shadow: 0 5px 22px rgba(0, 0, 0, .44), inset 0 1px rgba(255, 220, 177, .32);
+  text-shadow: 0 1px rgba(0, 0, 0, .45);
+}
+
+body.theme-dangdev .btn-modern-play:hover {
+  filter: brightness(1.17);
+  background: linear-gradient(180deg, #b44b3a, #94382b);
+}
+
+body.theme-dangdev .btn-modern-play .play-text {
+  font-family: "Jade Charm", "Jade Source Sans", sans-serif;
+  font-size: 0;
+  text-transform: none;
+}
+
+body.theme-dangdev .btn-modern-play .play-text::after {
+  content: "Chơi Game";
+  font-size: 20px;
+}
+
+body.theme-dangdev .modern-footer-tag {
+  color: #c7b8a4;
+  text-align: right;
+  font-size: 10px;
+}
+
+body.theme-dangdev .launcher-tag.steam,
+body.theme-dangdev .launcher-tag.heroic {
+  color: #e5cd98 !important;
+  border-color: rgba(229, 205, 152, .55) !important;
+  box-shadow: none !important;
+}
+
+body.theme-dangdev #ctx-menu {
+  background: rgba(18, 17, 15, .97);
+  border-color: rgba(229, 205, 152, .38);
+}
+
+body.theme-dangdev .modern-progress-box {
+  border-color: rgba(214, 186, 141, .7);
+  background: rgba(18, 17, 16, .93);
+}
+
+body.theme-dangdev #perf-page,
+body.theme-dangdev #font-page,
+body.theme-dangdev #theme-page {
+  inset: 52px 0 0;
+  padding: 16px 20px 16px 72px;
+}
+
+body.theme-dangdev.modern-drawer-open #perf-page,
+body.theme-dangdev.modern-drawer-open #font-page,
+body.theme-dangdev.modern-drawer-open #theme-page {
+  padding-left: 246px;
+}
+
+body.theme-dangdev #perf-page .perf-container,
+body.theme-dangdev #modern-font-view,
+body.theme-dangdev #theme-page .theme-page-container {
+  width: min(860px, 100%);
+  max-width: 100%;
+  border: 1px solid rgba(204, 174, 126, .56) !important;
+  border-radius: 7px !important;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, .015) 3px 4px),
+    linear-gradient(145deg, var(--wc-panel), rgba(13, 12, 11, .97)) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .48), inset 0 0 0 1px rgba(0, 0, 0, .55) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.theme-dangdev #modern-font-view {
+  padding: 24px;
+}
+
+body.theme-dangdev .perf-main-title,
+body.theme-dangdev .modern-font-main-title,
+body.theme-dangdev .theme-page-title {
+  color: var(--wc-ink);
+}
+
+body.theme-dangdev .perf-section-title,
+body.theme-dangdev .perf-preset-select-source,
+body.theme-dangdev .perf-footer-notice,
+body.theme-dangdev .modern-font-subtitle,
+body.theme-dangdev .current-font-label,
+body.theme-dangdev .theme-page-subtitle {
+  color: var(--wc-muted);
+}
+
+body.theme-dangdev #perf-page .perf-title-icon,
+body.theme-dangdev #perf-page .perf-mode-badge,
+body.theme-dangdev #theme-page .theme-header-badge {
+  color: var(--wc-jade) !important;
+  border-color: rgba(229, 205, 152, .46) !important;
+  background: rgba(229, 205, 152, .1) !important;
+  box-shadow: none !important;
+}
+
+body.theme-dangdev #perf-page .perf-mode-switch-bar,
+body.theme-dangdev #perf-page .perf-preset-select-card,
+body.theme-dangdev #perf-page .perf-preset-detail-box,
+body.theme-dangdev .modern-font-card.current-font-box,
+body.theme-dangdev .modern-text-input {
+  color: var(--wc-ink);
+  border-color: rgba(177, 151, 113, .42) !important;
+  background: rgba(20, 19, 18, .76) !important;
+  box-shadow: none !important;
+}
+
+body.theme-dangdev #perf-page .perf-mode-btn.active {
+  color: #fff4e5 !important;
+  border-color: #d8ad78 !important;
+  background: linear-gradient(90deg, #9d3d2f, #783126) !important;
+  box-shadow: inset 3px 0 #f1cda1 !important;
+}
+
+body.theme-dangdev #perf-page .perf-preset-dropdown {
+  color: var(--wc-jade) !important;
+  border-color: rgba(229, 205, 152, .55) !important;
+  background-color: rgba(18, 17, 15, .96) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e5cd98' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  box-shadow: none !important;
+}
+
+body.theme-dangdev #perf-page .perf-preset-dropdown:hover,
+body.theme-dangdev #perf-page .perf-preset-dropdown:focus {
+  color: #fff4e5 !important;
+  border-color: var(--wc-jade) !important;
+  box-shadow: 0 0 12px rgba(229, 205, 152, .2) !important;
+}
+
+body.theme-dangdev #perf-page .perf-preset-detail-title,
+body.theme-dangdev #perf-page .perf-preset-gpu-label,
+body.theme-dangdev .modern-font-a-icon,
+body.theme-dangdev .modern-field-label,
+body.theme-dangdev .btn-modern-restore,
+body.theme-dangdev .btn-modern-pak-install {
+  color: var(--wc-jade) !important;
+  text-shadow: none;
+}
+
+body.theme-dangdev #perf-page .perf-action-btn,
+body.theme-dangdev .btn-modern-install {
+  color: #fff4e5 !important;
+  border: 2px double #d4ad78 !important;
+  background: linear-gradient(180deg, #a64032, #833126) !important;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, .4) !important;
+}
+
+body.theme-dangdev #perf-page .perf-action-btn:hover,
+body.theme-dangdev .btn-modern-install:hover {
+  background: linear-gradient(180deg, #b44b3a, #94382b) !important;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .48) !important;
+}
+
+body.theme-dangdev .modern-font-card.current-font-box {
+  border-left: 3px solid var(--wc-jade) !important;
+}
+
+body.theme-dangdev .btn-modern-browse,
+body.theme-dangdev .btn-modern-pak-install {
+  color: var(--wc-ink);
+  border-color: rgba(204, 174, 126, .52);
+  background: rgba(38, 34, 29, .9);
+}
+
+body.theme-dangdev .btn-modern-browse:hover,
+body.theme-dangdev .btn-modern-pak-install:hover {
+  color: #fff4e5;
+  border-color: var(--wc-jade);
+  background: rgba(98, 51, 38, .9);
+  box-shadow: none;
+  transform: none;
+}
+
+body.theme-dangdev #theme-page .theme-card {
+  border-radius: 5px;
+  border-color: rgba(177, 151, 113, .38) !important;
+  background: rgba(20, 19, 18, .82) !important;
+}
+
+body.theme-dangdev #theme-page .theme-card:hover,
+body.theme-dangdev #theme-page .theme-card.active {
+  border-color: var(--wc-jade) !important;
+  background: rgba(82, 47, 36, .78) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .42) !important;
+}
+
+body.theme-dangdev #theme-page .theme-badge-active,
+body.theme-dangdev #theme-page .theme-apply-btn.applied {
+  color: #fff4e5 !important;
+  border-color: #d8ad78 !important;
+  background: #943e2e !important;
+  box-shadow: none !important;
+}
+
+body.theme-dangdev #theme-page .theme-apply-btn:not(.applied) {
+  color: var(--wc-ink);
+  border-color: rgba(204, 174, 126, .48);
+  background: rgba(38, 34, 29, .9);
+}
+
+body.theme-dangdev #theme-page .theme-apply-btn:not(.applied):hover {
+  color: #fff4e5;
+  border-color: var(--wc-jade);
+  background: #943e2e;
+}
+
+body.theme-dangdev #toast-container {
+  --toast-bg: rgba(26, 23, 20, .96);
+  --toast-border: rgba(214, 186, 141, .6);
+  --toast-text: #f5eee4;
+  --toast-accent: #e8ce9e;
+  --toast-error: #efaa98;
+}
+
+@media (max-height: 620px) {
+  body.theme-dangdev .watercolor-news { flex-basis: 130px; min-height: 80px; }
+}

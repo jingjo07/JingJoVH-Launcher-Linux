@@ -1,6 +1,6 @@
-/* ════════════════════════════════════════════════════════════
-   WuWaVH Launcher — app.js
-   ════════════════════════════════════════════════════════════ */
+/* ============================================================
+   JingJoVH Launcher - app.js
+   ============================================================ */
 
 "use strict";
 
@@ -224,7 +224,7 @@ async function loadVersion() {
     if (info && info.version) {
       serverInfo = info;
       const vText = `v${info.version}`;
-      const noteHtml = (info.note || "Không có thông báo.").replace(/\n/g, "<br>");
+      const noteText = info.note || "Không có thông báo.";
 
       // Classic News elements
       const verTag = document.getElementById("ver-tag");
@@ -234,7 +234,7 @@ async function loadVersion() {
       if (newsDate) newsDate.textContent = info.date || "";
 
       const newsContent = document.getElementById("news-content");
-      if (newsContent) newsContent.innerHTML = noteHtml;
+      if (newsContent) newsContent.textContent = noteText;
 
       // Modern News elements
       const verTagModern = document.getElementById("ver-tag-modern");
@@ -244,7 +244,14 @@ async function loadVersion() {
       if (newsDateModern) newsDateModern.textContent = info.date || "";
 
       const newsContentModern = document.getElementById("news-content-modern");
-      if (newsContentModern) newsContentModern.innerHTML = noteHtml;
+      if (newsContentModern) newsContentModern.textContent = noteText;
+
+      const watercolorVersion = document.getElementById("watercolor-news-version");
+      if (watercolorVersion) watercolorVersion.textContent = vText;
+      const watercolorDate = document.getElementById("watercolor-news-date");
+      if (watercolorDate) watercolorDate.textContent = info.date || "";
+      const watercolorContent = document.getElementById("watercolor-news-content");
+      if (watercolorContent) watercolorContent.textContent = noteText;
 
       // Cyber News elements
       const verTagCyber = document.getElementById("ver-tag-cyber");
@@ -254,7 +261,7 @@ async function loadVersion() {
       if (newsDateCyber) newsDateCyber.textContent = info.date || "";
 
       const newsContentCyber = document.getElementById("news-content-cyber");
-      if (newsContentCyber) newsContentCyber.innerHTML = noteHtml;
+      if (newsContentCyber) newsContentCyber.textContent = noteText;
 
       updateVhVersionUI();
     }
@@ -276,6 +283,8 @@ let gameStatus = {};
 let launcherInfo = { current: "steam" };
 let isDx11Enabled = true;
 let isCSharpEnvEnabled = true;
+let activeGameId = "wuwa";
+const gameSelect = document.getElementById("game-select");
 
 function updateLaunchOptionsUI() {
   const dx11Modern = document.getElementById("toggle-dx11-modern");
@@ -309,6 +318,7 @@ function updateLaunchOptionsUI() {
 
 async function toggleDx11(e) {
   if (e) e.stopPropagation();
+  if (activeGameId !== "wuwa") return;
   const previous = isDx11Enabled;
   isDx11Enabled = !isDx11Enabled;
   updateLaunchOptionsUI();
@@ -326,6 +336,7 @@ async function toggleDx11(e) {
 
 async function toggleCSharpEnv(e) {
   if (e) e.stopPropagation();
+  if (activeGameId !== "wuwa") return;
   const previous = isCSharpEnvEnabled;
   isCSharpEnvEnabled = !isCSharpEnvEnabled;
   updateLaunchOptionsUI();
@@ -342,8 +353,11 @@ async function toggleCSharpEnv(e) {
 }
 
 async function refreshStatus() {
+  const requestedGame = activeGameId;
   try {
-    gameStatus = await ipc("get_status");
+    const status = await ipc("get_status");
+    if (requestedGame !== activeGameId || (status.game && status.game !== activeGameId)) return;
+    gameStatus = status;
     if (gameStatus.launcher_info) {
       launcherInfo = gameStatus.launcher_info;
     }
@@ -387,13 +401,13 @@ function updateModernStatus() {
   detail.textContent = missing
     ? "Chọn thư mục cài đặt để bắt đầu"
     : gameStatus.installed_vh
-      ? `Việt hóa ${gameStatus.vh_version ? `v${gameStatus.vh_version}` : "đã cài đặt"} · ${launcherInfo.current === "heroic" ? "Heroic" : "Steam"}`
+      ? `Việt hóa ${gameStatus.vh_version ? `v${gameStatus.vh_version}` : "đã cài đặt"} · ${launcherInfo.current === "heroic" ? "Heroic" : launcherInfo.current === "steam" ? "Steam" : "NTE Launcher"}`
       : "Chưa cài Việt hóa · Có thể cập nhật ngay";
 }
 
 function updatePlayBtn() {
   const isRunning = Boolean(gameStatus.game_running);
-  const text = isRunning ? "ĐANG CHƠI" : "CHƠI GAME";
+  const text = isRunning ? "ĐANG CHƠI" : (activeGameId === "nte" ? "CHƠI NTE" : "CHƠI GAME");
 
   // Classic Play Button
   const btn = document.getElementById("btn-play");
@@ -440,9 +454,9 @@ function updatePlayBtn() {
 }
 
 function updateLauncherBadge() {
-  const curr = launcherInfo.current || "steam";
-  const label = curr === "heroic" ? "Heroic" : "Steam";
-  const badgeClass = `launcher-tag ${curr === "heroic" ? "heroic" : "steam"}`;
+  const curr = launcherInfo.current || (activeGameId === "nte" ? "official" : "steam");
+  const label = curr === "heroic" ? "Heroic" : curr === "steam" ? "Steam" : "NTE Launcher";
+  const badgeClass = `launcher-tag ${curr === "heroic" ? "heroic" : curr === "steam" ? "steam" : "official"}`;
 
   const badgeClassic = document.getElementById("launcher-badge");
   const txtClassic = document.getElementById("launcher-badge-txt");
@@ -456,7 +470,7 @@ function updateLauncherBadge() {
 
   const badgeCyber = document.getElementById("launcher-badge-cyber");
   const txtCyber = document.getElementById("launcher-badge-txt-cyber");
-  if (badgeCyber) badgeCyber.className = `cyber-platform-badge ${curr === "heroic" ? "heroic" : "steam"}`;
+  if (badgeCyber) badgeCyber.className = `cyber-platform-badge ${curr === "heroic" ? "heroic" : curr === "steam" ? "steam" : "official"}`;
   if (txtCyber) txtCyber.textContent = label;
 }
 
@@ -485,26 +499,39 @@ function updateMusicIcons(playing) {
   if (drawerPlayBtn) drawerPlayBtn.innerHTML = playing ? pauseSvg : playSvg;
 }
 
-function initBgMedia() {
-  const videoSrc = `${window.ASSETS_DIR}/bg-video-720p.mp4`;
-  let currentVid = vidA;
-  let nextVid = vidB;
-  let isTransitioning = false;
-  let isVideoPausedByFocusOrGame = false;
-  let isMediaPausedByUser = false;
+let currentVid = vidA;
+let nextVid = vidB;
+let isTransitioning = false;
+let isVideoPausedByFocusOrGame = false;
+let isMediaPausedByUser = false;
+let mediaInitialized = false;
+
+function getMediaSources(gameId) {
+  const isNte = gameId === "nte";
+  return {
+    videoPrimary: isNte ? `${window.ASSETS_DIR}/nte-bg-video.mp4` : `${window.ASSETS_DIR}/bg-video-720p.mp4`,
+    videoFallback: "assets/bg-video-720p.mp4",
+    audioPrimary: isNte ? `${window.ASSETS_DIR}/nte-bgm.mp3` : `${window.ASSETS_DIR}/bgm.mp3`,
+    audioFallback: "assets/bgm.mp3",
+  };
+}
+
+function switchMediaForGame(gameId) {
+  const { videoPrimary, videoFallback, audioPrimary, audioFallback } = getMediaSources(gameId);
 
   function setupVideo(v) {
     if (!v) return;
-    v.src = videoSrc;
+    v.src = videoPrimary;
     v.muted = true;
     v.playsInline = true;
     v.preload = "auto";
+    v.dataset.fallbackTried = "";
     v.onerror = () => {
       if (!v.dataset.fallbackTried) {
         v.dataset.fallbackTried = "1";
-        v.src = "assets/bg-video-720p.mp4";
+        v.src = videoFallback;
         v.load();
-        v.play().catch(() => {});
+        if (!isVideoPausedByFocusOrGame && !isMediaPausedByUser) v.play().catch(() => {});
       }
     };
     v.load();
@@ -512,10 +539,37 @@ function initBgMedia() {
 
   setupVideo(vidA);
   setupVideo(vidB);
-
-  if (vidA) {
+  if (vidA && !isVideoPausedByFocusOrGame && !isMediaPausedByUser) {
     vidA.play().catch(() => {});
   }
+
+  if (audio) {
+    const wasPlaying = !audio.paused && !audio.ended;
+    audio.src = audioPrimary;
+    audio.dataset.fallbackTried = "";
+    audio.onerror = () => {
+      if (!audio.dataset.fallbackTried) {
+        audio.dataset.fallbackTried = "1";
+        audio.src = audioFallback;
+        audio.load();
+        if (wasPlaying && !isMediaPausedByUser) {
+          audio.play().then(() => updateMusicIcons(true)).catch(() => updateMusicIcons(false));
+        }
+      }
+    };
+    audio.load();
+    if (wasPlaying && !isMediaPausedByUser) {
+      audio.play().then(() => updateMusicIcons(true)).catch(() => updateMusicIcons(false));
+    }
+  }
+}
+window.switchMediaForGame = switchMediaForGame;
+
+function initBgMedia() {
+  currentVid = vidA;
+  nextVid = vidB;
+  mediaInitialized = true;
+  switchMediaForGame(activeGameId);
 
   function handleTimeUpdate(v) {
     if (v !== currentVid || isTransitioning || isVideoPausedByFocusOrGame || isMediaPausedByUser) return;
@@ -573,18 +627,10 @@ function initBgMedia() {
   }
 
   // Setup Audio
-  audio.src = `${window.ASSETS_DIR}/bgm.mp3`;
-  audio.volume = 0.35;
-  audio.loop = true;
-
-  audio.onerror = () => {
-    if (!audio.dataset.fallbackTried) {
-      audio.dataset.fallbackTried = "1";
-      audio.src = "assets/bgm.mp3";
-      audio.load();
-      tryPlay();
-    }
-  };
+  if (audio) {
+    audio.volume = 0.35;
+    audio.loop = true;
+  }
 
   // Auto-play audio immediately on launch
   const tryPlay = () => {
@@ -753,15 +799,16 @@ const dockExpandBtn = document.getElementById("dock-expand-btn");
 const drawerCollapseBtn = document.getElementById("drawer-collapse-btn");
 const modernDrawerBackdrop = document.getElementById("modern-drawer-backdrop");
 
-function setModernDrawerOpen(open) {
+function setModernDrawerOpen(open, moveFocus = true) {
   if (!sidebarDrawer) return;
   sidebarDrawer.classList.toggle("open", open);
+  document.body.classList.toggle("modern-drawer-open", open);
   sidebarDrawer.setAttribute("aria-hidden", String(!open));
   sidebarDrawer.inert = !open;
   if (modernDrawerBackdrop) modernDrawerBackdrop.classList.toggle("open", open);
   if (dockExpandBtn) dockExpandBtn.setAttribute("aria-expanded", String(open));
-  if (open && drawerCollapseBtn) drawerCollapseBtn.focus();
-  if (!open && sidebarDrawer.contains(document.activeElement) && dockExpandBtn) dockExpandBtn.focus();
+  if (moveFocus && open && drawerCollapseBtn) drawerCollapseBtn.focus();
+  if (moveFocus && !open && sidebarDrawer.contains(document.activeElement) && dockExpandBtn) dockExpandBtn.focus();
 }
 
 const bottomLayer = document.getElementById("bottom-layer");
@@ -771,10 +818,11 @@ const fontPage = document.getElementById("font-page");
 const themePage = document.getElementById("theme-page");
 
 function switchTab(tab) {
+  if (activeGameId === "nte" && tab === "font") tab = "home";
   currentTab = tab;
 
-  // Close drawer if open
-  setModernDrawerOpen(false);
+  // Preserve the user's open/closed sidebar state in DangDev.
+  if (currentThemeId !== "dangdev") setModernDrawerOpen(false);
 
   // Update Classic Nav tabs
   if (tabHome) tabHome.classList.toggle("active", tab === "home");
@@ -884,7 +932,7 @@ if (drawerCollapseBtn) {
 }
 
 document.addEventListener("click", (e) => {
-  if (sidebarDrawer && sidebarDrawer.classList.contains("open")) {
+  if (currentThemeId !== "dangdev" && sidebarDrawer && sidebarDrawer.classList.contains("open")) {
     if (!sidebarDrawer.contains(e.target) && e.target !== dockExpandBtn) {
       setModernDrawerOpen(false);
     }
@@ -920,9 +968,13 @@ function toggleMenu(open, triggerBtn) {
       let bottom = window.innerHeight - rect.top + 8;
 
       // Prevent menu overflowing the right edge
-      const menuWidth = 230;
+      const menuWidth = ctxMenu.offsetWidth || 280;
       if (left + menuWidth > window.innerWidth) {
         left = window.innerWidth - menuWidth - 16;
+      }
+      const menuHeight = ctxMenu.offsetHeight;
+      if (bottom + menuHeight > window.innerHeight - 16) {
+        bottom = Math.max(16, window.innerHeight - menuHeight - 16);
       }
 
       ctxMenu.style.left = `${left}px`;
@@ -1024,6 +1076,14 @@ if (ctxUpdate) {
   };
 }
 
+const ctxGamePaths = document.getElementById("ctx-game-paths");
+if (ctxGamePaths) {
+  ctxGamePaths.onclick = () => {
+    toggleMenu(false);
+    showPathModal();
+  };
+}
+
 const ctxWineDll = document.getElementById("ctx-winedlloverrides");
 if (ctxWineDll) {
   ctxWineDll.onclick = async () => {
@@ -1032,7 +1092,32 @@ if (ctxWineDll) {
       const res = await ipc("install_wine_overrides");
       toast(res.message || "Đã cấu hình WINEDLLOVERRIDES thành công!", "success");
     } catch (e) {
-      toast(`Lỗi: ${e.message}`, "error");
+      toast("Lỗi: " + e.message, "error");
+    }
+  };
+}
+
+const drawerItemWineDll = document.getElementById("drawer-item-winedll");
+if (drawerItemWineDll) {
+  drawerItemWineDll.onclick = async () => {
+    setModernDrawerOpen(false);
+    try {
+      const res = await ipc("install_wine_overrides");
+      toast(res.message || "Đã cấu hình WINEDLLOVERRIDES thành công!", "success");
+    } catch (e) {
+      toast("Lỗi: " + e.message, "error");
+    }
+  };
+}
+
+const btnModalWineDll = document.getElementById("btn-modal-winedll");
+if (btnModalWineDll) {
+  btnModalWineDll.onclick = async () => {
+    try {
+      const res = await ipc("install_wine_overrides");
+      toast(res.message || "Đã cấu hình WINEDLLOVERRIDES thành công!", "success");
+    } catch (e) {
+      toast("Lỗi: " + e.message, "error");
     }
   };
 }
@@ -1101,6 +1186,8 @@ const perfModeSubviewAdvanced = document.getElementById("perf-mode-subview-advan
 
 // Simple Mode Preset Details
 const perfPresetDropdown = document.getElementById("perf-preset-dropdown");
+const wuwaPerfOptions = perfPresetDropdown ? perfPresetDropdown.innerHTML : "";
+let ntePerfPresets = [];
 const perfDetailTitle = document.getElementById("perf-detail-title");
 const perfDetailSubtitle = document.getElementById("perf-detail-subtitle");
 const perfDetailGpu = document.getElementById("perf-detail-gpu");
@@ -1179,9 +1266,19 @@ const ALTERIAX_PRESETS = {
 let isPerfLoading = false;
 
 function updatePresetDetailUI(presetId) {
+  if (activeGameId === "nte" && ntePerfPresets.length) {
+    const preset = ntePerfPresets.find(p => p.id === presetId) || ntePerfPresets[0];
+    if (perfDetailTitle) perfDetailTitle.textContent = preset.name;
+    if (perfDetailSubtitle) perfDetailSubtitle.hidden = true;
+    if (perfDetailGpu) perfDetailGpu.textContent = preset.gpu_info;
+    return;
+  }
   const p = ALTERIAX_PRESETS[presetId] || ALTERIAX_PRESETS["config-3"];
   if (perfDetailTitle) perfDetailTitle.textContent = p.name;
-  if (perfDetailSubtitle) perfDetailSubtitle.textContent = p.subtitle;
+  if (perfDetailSubtitle) {
+    perfDetailSubtitle.hidden = false;
+    perfDetailSubtitle.textContent = p.subtitle;
+  }
   if (perfDetailGpu) perfDetailGpu.textContent = p.gpu;
   if (perfPresetDropdown && perfPresetDropdown.value !== presetId) {
     perfPresetDropdown.value = presetId;
@@ -1210,13 +1307,25 @@ if (perfPresetDropdown) {
   });
 }
 
+const nteCommonDeviceProfiles = document.getElementById("nte-common-device-profiles");
+const nteCommonGame = document.getElementById("nte-common-game");
+const nteCommonInput = document.getElementById("nte-common-input");
+const ntePerfRestoreBtn = document.getElementById("nte-perf-restore-btn");
+
 async function selectPerfPreset(presetName) {
   if (isPerfLoading) return;
   isPerfLoading = true;
   try {
-    const updated = await ipc("apply_perf_preset", { preset: presetName });
+    const common = activeGameId === "nte" ? {
+      device_profiles: Boolean(nteCommonDeviceProfiles?.checked),
+      game: Boolean(nteCommonGame?.checked),
+      input: Boolean(nteCommonInput?.checked),
+    } : undefined;
+    const updated = await ipc("apply_perf_preset", { preset: presetName, common });
     applySettingsToUI(updated);
-    const pTitle = (ALTERIAX_PRESETS[presetName] || {}).name || presetName;
+    const pTitle = activeGameId === "nte"
+      ? (ntePerfPresets.find(p => p.id === presetName)?.name || presetName)
+      : ((ALTERIAX_PRESETS[presetName] || {}).name || presetName);
     toast(`✓ Đã áp dụng: ${pTitle}`, "success");
     if (perfIniModal && !perfIniModal.hidden) {
       loadEngineIniViewer();
@@ -1281,9 +1390,39 @@ if (perfRestoreIniBtn) {
   });
 }
 
+if (ntePerfRestoreBtn) {
+  ntePerfRestoreBtn.addEventListener("click", async () => {
+    try {
+      const result = await ipc("restore_perf_settings");
+      toast(`✓ Đã khôi phục ${result.restored?.length || 0} file cấu hình NTE`, "success");
+      await loadPerfSettings();
+    } catch (e) {
+      toast(`Lỗi khôi phục: ${e.message}`, "error");
+    }
+  });
+}
+
 
 function applySettingsToUI(s) {
   if (!s || typeof s !== "object" || s.error) return;
+  if (activeGameId === "nte") {
+    if (perfDetailSubtitle) perfDetailSubtitle.hidden = true;
+    const presets = s.presets || ntePerfPresets;
+    const common = Array.isArray(s.common) ? s.common : [];
+    if (s.presets) ntePerfPresets = s.presets;
+    if (nteCommonDeviceProfiles) nteCommonDeviceProfiles.checked = common.includes("device_profiles");
+    if (nteCommonGame) nteCommonGame.checked = common.includes("game");
+    if (nteCommonInput) nteCommonInput.checked = common.includes("input");
+    if (perfPresetDropdown && presets.length) {
+      const selected = s.preset || perfPresetDropdown.value;
+      perfPresetDropdown.innerHTML = presets.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+      perfPresetDropdown.value = presets.some(p => p.id === selected) ? selected : presets[2]?.id || presets[0].id;
+      const current = presets.find(p => p.id === perfPresetDropdown.value) || presets[0];
+      if (perfDetailTitle) perfDetailTitle.textContent = current.name;
+      if (perfDetailGpu) perfDetailGpu.textContent = current.gpu_info;
+    }
+    return;
+  }
   const activePreset = s.active_preset || (s.enabled ? "config-3" : "default");
   updatePresetDetailUI(activePreset);
 
@@ -1332,6 +1471,10 @@ function applySettingsToUI(s) {
 async function loadPerfSettings() {
   isPerfLoading = true;
   try {
+    if (activeGameId === "wuwa" && perfPresetDropdown && perfPresetDropdown.innerHTML !== wuwaPerfOptions) {
+      perfPresetDropdown.innerHTML = wuwaPerfOptions;
+      ntePerfPresets = [];
+    }
     const s = await ipc("get_perf_settings");
     applySettingsToUI(s);
   } catch (e) {
@@ -1703,15 +1846,22 @@ if (fontInstallDefaultBtn) {
 // ── Theme Switcher System (Modular External Themes) ────────────────────────
 
 let currentThemeId = "classic";
+let savedWuwaTheme = "classic";
+let savedNteTheme = "cyber";
 
 function applyTheme(themeId, save = true) {
   if (themeId === "oriental") themeId = "cyber";
-  const themeListDefs = (typeof THEMES !== "undefined") ? THEMES : [];
-  const themeObj = themeListDefs.find(t => t.id === themeId) || themeListDefs[0];
+  const isNte = activeGameId === "nte";
+  const themeListDefs = (typeof getThemesForGame === "function")
+    ? getThemesForGame(activeGameId)
+    : (isNte ? (typeof NTE_THEMES !== "undefined" ? NTE_THEMES : []) : ((typeof THEMES !== "undefined") ? THEMES : []));
+
+  const defaultTheme = isNte ? "cyber" : "classic";
+  const themeObj = themeListDefs.find(t => t.id === themeId) || themeListDefs.find(t => t.id === defaultTheme) || themeListDefs[0];
   const activeId = themeObj ? themeObj.id : themeId;
 
   currentThemeId = activeId;
-  const usesModernLayout = activeId === "modern" || activeId === "cyber";
+  const usesModernLayout = activeId === "modern" || activeId === "cyber" || activeId === "dangdev";
 
   // 1. Swap theme stylesheet dynamically from themes/ directory
   const linkEl = document.getElementById("theme-stylesheet");
@@ -1720,11 +1870,12 @@ function applyTheme(themeId, save = true) {
   }
 
   // 2. Update body classes & attributes
-  document.body.classList.remove("theme-modern", "theme-classic", "theme-oriental", "theme-cyber");
+  document.body.classList.remove("theme-modern", "theme-classic", "theme-oriental", "theme-cyber", "theme-dangdev");
   document.body.classList.add(`theme-${activeId}`);
   document.body.classList.toggle("theme-modern-layout", usesModernLayout);
   document.body.classList.toggle("theme-classic-layout", !usesModernLayout);
   document.body.setAttribute("data-theme", activeId);
+  setModernDrawerOpen(activeId === "dangdev", false);
 
   // 3. Update active state on visible theme cards
   document.querySelectorAll(".theme-card").forEach(card => {
@@ -1732,17 +1883,27 @@ function applyTheme(themeId, save = true) {
   });
 
   if (save) {
-    try { localStorage.setItem("wuwavh_theme", activeId); } catch { }
-    ipc("set_theme", { theme: activeId }).catch(() => { });
+    if (isNte) {
+      savedNteTheme = activeId;
+      try { localStorage.setItem("nte_theme", activeId); } catch { }
+      ipc("set_theme", { theme: activeId }).catch(() => { });
+    } else {
+      savedWuwaTheme = activeId;
+      try { localStorage.setItem("wuwavh_theme", activeId); } catch { }
+      ipc("set_theme", { theme: activeId }).catch(() => { });
+    }
     const tName = themeObj ? themeObj.name : activeId;
-    toast(`🎨 Đã áp dụng giao diện: ${tName}`, "success");
+    toast(`\uD83C\uDFA8 \u0110\u00E3 \u00E1p d\u1EE5ng giao di\u1EC7n: ${tName}`, "success");
   }
 }
 
 function renderThemeList() {
   const themeList = document.getElementById("theme-list");
   if (!themeList) return;
-  const themeListDefs = (typeof THEMES !== "undefined") ? THEMES : [];
+  const isNte = activeGameId === "nte";
+  const themeListDefs = (typeof getThemesForGame === "function")
+    ? getThemesForGame(activeGameId)
+    : (isNte ? (typeof NTE_THEMES !== "undefined" ? NTE_THEMES : []) : ((typeof THEMES !== "undefined") ? THEMES : []));
   themeList.innerHTML = "";
 
   themeListDefs.forEach(t => {
@@ -1802,6 +1963,76 @@ function renderThemeList() {
     themeList.appendChild(card);
   });
 }
+
+function applyGameUI(gameId) {
+  activeGameId = gameId === "nte" ? "nte" : "wuwa";
+  document.body.dataset.game = activeGameId;
+  document.title = activeGameId === "nte" ? "JingJoVH - Neverness to Everness" : "JingJoVH - Wuthering Waves";
+  if (gameSelect) gameSelect.value = activeGameId;
+
+  const nte = activeGameId === "nte";
+  const cyberLogo = document.querySelector(".cyber-logo-img");
+  if (cyberLogo) {
+    cyberLogo.src = nte ? "assets/NTE_cor.png" : "assets/icon_cor.png";
+    cyberLogo.alt = nte ? "Neverness to Everness" : "Wuthering Waves";
+  }
+  const drawerTitle = document.querySelector(".drawer-main-title");
+  if (drawerTitle) drawerTitle.textContent = nte ? "Neverness to Everness" : "Wuthering Waves";
+  const presetSource = document.querySelector(".perf-preset-select-source");
+  if (presetSource) presetSource.textContent = nte ? "Nguồn: AlteriaX/NTE-Configs" : "Nguồn: AlteriaX/WuWa-Configs";
+  const pathDesc = document.getElementById("path-desc");
+  const pathInput = document.getElementById("path-input");
+  if (pathDesc) pathDesc.textContent = nte
+    ? "Nhập đường dẫn thư mục Neverness to Everness (chứa Client/WindowsNoEditor/HT):"
+    : "Nhập đường dẫn thư mục Wuthering Waves (thư mục chứa Client/, Binaries/...):";
+  if (pathInput) pathInput.placeholder = nte ? "/home/user/Games/Neverness To Everness" : "/home/user/Games/WutheringWaves";
+
+  // Dynamic News Labels
+  const classicNewsLabel = document.querySelector(".news-label");
+  if (classicNewsLabel) classicNewsLabel.textContent = nte ? "✦ BẢN DỊCH VIỆT HOÁ NTE ✦" : "✦ THÔNG BÁO VIỆT HÓA WUWA ✦";
+  const modernNewsLabel = document.querySelector(".modern-news-label");
+  if (modernNewsLabel) modernNewsLabel.textContent = nte ? "BẢN DỊCH NTE MỚI NHẤT" : "BẢN DỊCH MỚI NHẤT";
+  const cyberNewsTitle = document.querySelector(".cyber-news-title");
+  if (cyberNewsTitle) {
+    cyberNewsTitle.textContent = nte ? "BẢN DỊCH NTE MỚI NHẤT" : "THÔNG BÁO VIỆT HOÁ";
+    cyberNewsTitle.setAttribute("data-text", nte ? "BẢN DỊCH NTE MỚI NHẤT" : "THÔNG BÁO VIỆT HOÁ");
+  }
+
+  // Switch Media for Game
+  if (mediaInitialized) switchMediaForGame(activeGameId);
+
+  // Update Play Button
+  updatePlayBtn();
+
+  if (nte && currentTab === "font") switchTab("home");
+  applyTheme(nte ? savedNteTheme : savedWuwaTheme, false);
+  if (currentTab === "theme") renderThemeList();
+  updateLauncherBadge();
+}
+
+async function selectGame(gameId) {
+  if (gameId === activeGameId) return;
+  if (modUpdateInProgress || mediaUpdateInProgress || launcherUpdateBusy) {
+    if (gameSelect) gameSelect.value = activeGameId;
+    toast("Hãy chờ cập nhật hiện tại hoàn tất trước khi đổi game.", "info");
+    return;
+  }
+  const previous = activeGameId;
+  if (gameSelect) gameSelect.disabled = true;
+  try {
+    await ipc("set_active_game", { game: gameId });
+    applyGameUI(gameId);
+    await Promise.allSettled([loadVersion(), refreshStatus()]);
+    toast(`Đã chuyển sang ${gameId === "nte" ? "Neverness to Everness" : "Wuthering Waves"}`, "success");
+  } catch (e) {
+    applyGameUI(previous);
+    toast(`Không thể đổi game: ${e.message}`, "error");
+  } finally {
+    if (gameSelect) gameSelect.disabled = false;
+  }
+}
+
+if (gameSelect) gameSelect.addEventListener("change", () => selectGame(gameSelect.value));
 
 // ── Update Progress System (Inline Bottom Progress Bar) ─────────────────────
 
@@ -1953,21 +2184,28 @@ function startUpdateAssets() {
 // ── Game Path Modal ────────────────────────────────────────────────────────
 
 const pathModal = document.getElementById("path-modal");
+const gamePathInput = document.getElementById("path-input");
+const prefixInput = document.getElementById("prefix-input");
 
 function showPathModal() {
   pathModal.classList.add("visible");
   document.getElementById("path-status").textContent = "";
-  document.getElementById("path-input").focus();
+  if (gamePathInput) gamePathInput.value = gameStatus.game_path || "";
+  if (prefixInput) prefixInput.value = activeGameId === "nte" ? (gameStatus.prefix_path || "") : "";
+  if (gamePathInput) gamePathInput.focus();
 }
 
 async function submitPath() {
-  const input = document.getElementById("path-input");
   const status = document.getElementById("path-status");
-  const path = input.value.trim();
+  const path = gamePathInput.value.trim();
+  const prefix = prefixInput ? prefixInput.value.trim() : "";
   if (!path) return;
   status.textContent = "Đang kiểm tra...";
   try {
     await ipc("set_game_path", { path });
+    if (activeGameId === "nte" && prefix) {
+      await ipc("set_game_prefix", { path: prefix });
+    }
     pathModal.classList.remove("visible");
     toast("Đã lưu thư mục game!", "success");
     await refreshStatus();
@@ -1981,10 +2219,13 @@ async function submitPath() {
 
 const launcherModal = document.getElementById("launcher-modal");
 const optSteam = document.getElementById("opt-steam");
+const optNteSteam = document.getElementById("opt-nte-steam");
 const optHeroic = document.getElementById("opt-heroic");
 const steamBadge = document.getElementById("steam-badge");
+const nteSteamBadge = document.getElementById("nte-steam-badge");
 const heroicBadge = document.getElementById("heroic-badge");
 const steamDetail = document.getElementById("steam-status-detail");
+const nteSteamDetail = document.getElementById("nte-steam-status-detail");
 const heroicDetail = document.getElementById("heroic-status-detail");
 
 function openLauncherModal() {
@@ -2021,25 +2262,52 @@ if (creditModal) {
 }
 
 function updateLauncherModalUI() {
-  const curr = launcherInfo.current || "steam";
+  const officialType = activeGameId === "nte" ? "official" : "steam";
+  const curr = launcherInfo.current || officialType;
   const heroicAvail = launcherInfo.heroic_available || (launcherInfo.heroic && launcherInfo.heroic.available);
   const heroicHasGame = launcherInfo.heroic_has_game || (launcherInfo.heroic && launcherInfo.heroic.game_found);
   const heroicGame = launcherInfo.heroic_game || (launcherInfo.heroic && launcherInfo.heroic.game_title ? launcherInfo.heroic : null);
-  const steamAvail = launcherInfo.steam_available || (launcherInfo.steam && launcherInfo.steam.available);
+  const officialAvailable = activeGameId === "nte"
+    ? Boolean(launcherInfo.official_available || (launcherInfo.official && launcherInfo.official.available))
+    : Boolean(launcherInfo.steam_available || (launcherInfo.steam && launcherInfo.steam.available));
+  const nteSteamAvailable = Boolean(launcherInfo.steam_available || (launcherInfo.steam && launcherInfo.steam.available));
+  const nteSteamGame = launcherInfo.steam_game || launcherInfo.steam;
+  const description = launcherModal?.querySelector(".launcher-desc");
+  if (description) description.textContent = activeGameId === "nte"
+    ? "Chọn NTE Launcher, Steam hoặc Heroic Games Launcher để khởi chạy Neverness to Everness:"
+    : "Chọn ứng dụng để khởi chạy Wuthering Waves cùng cấu hình Proton / Wine:";
 
-  if (optSteam) optSteam.classList.toggle("selected", curr === "steam");
+  if (optSteam) {
+    optSteam.classList.toggle("selected", curr === officialType);
+    const name = optSteam.querySelector(".launcher-opt-name");
+    if (name) name.textContent = activeGameId === "nte" ? "NTE Launcher" : "Steam";
+  }
+  if (optNteSteam) optNteSteam.classList.toggle("selected", activeGameId === "nte" && curr === "steam");
   if (optHeroic) optHeroic.classList.toggle("selected", curr === "heroic");
 
   // Steam status
   if (steamBadge && steamDetail) {
-    if (steamAvail) {
+    if (officialAvailable) {
       steamBadge.textContent = "Khả dụng ✓";
       steamBadge.className = "launcher-opt-badge ok";
-      steamDetail.textContent = "Đã phát hiện Steam trên hệ thống";
+      steamDetail.textContent = activeGameId === "nte" ? "Khởi chạy NTEGlobalLauncher.exe qua Wine" : "Đã phát hiện Steam trên hệ thống";
     } else {
       steamBadge.textContent = "Chưa cài đặt";
       steamBadge.className = "launcher-opt-badge";
-      steamDetail.textContent = "Không tìm thấy Steam trên hệ thống";
+      steamDetail.textContent = activeGameId === "nte" ? "Không tìm thấy bản cài NTE hợp lệ" : "Không tìm thấy Steam trên hệ thống";
+    }
+  }
+
+  if (nteSteamBadge && nteSteamDetail) {
+    if (nteSteamAvailable) {
+      nteSteamBadge.textContent = "Đã nhận diện ✓";
+      nteSteamBadge.className = "launcher-opt-badge ok";
+      const title = (nteSteamGame && (nteSteamGame.title || nteSteamGame.game_title)) || "NTE: Neverness to Everness";
+      nteSteamDetail.textContent = `Tìm thấy game: ${title} (AppID: 4508340)`;
+    } else {
+      nteSteamBadge.textContent = "Chưa tìm thấy";
+      nteSteamBadge.className = "launcher-opt-badge";
+      nteSteamDetail.textContent = "Không tìm thấy NTE trong các thư viện Steam";
     }
   }
 
@@ -2048,7 +2316,7 @@ function updateLauncherModalUI() {
     if (heroicAvail && heroicHasGame) {
       heroicBadge.textContent = "Đã nhận diện ✓";
       heroicBadge.className = "launcher-opt-badge ok";
-      const title = (heroicGame && (heroicGame.title || heroicGame.game_title)) || 'Wuthering Waves';
+      const title = (heroicGame && (heroicGame.title || heroicGame.game_title)) || (activeGameId === "nte" ? "Neverness to Everness" : "Wuthering Waves");
       const runner = (heroicGame && heroicGame.runner) || 'sideload';
       heroicDetail.textContent = `Tìm thấy game: ${title} (Runner: ${runner})`;
     } else if (heroicAvail) {
@@ -2065,13 +2333,14 @@ function updateLauncherModalUI() {
 
 async function selectLauncher(type) {
   try {
-    await ipc("set_launcher", { launcher: type });
-    launcherInfo.current = type;
-    try { localStorage.setItem("wuwavh_launcher", type); } catch { }
+    const selected = type;
+    await ipc("set_launcher", { launcher: selected });
+    launcherInfo.current = selected;
+    if (activeGameId === "wuwa") try { localStorage.setItem("wuwavh_launcher", selected); } catch { }
     updateLauncherBadge();
     updateModernStatus();
     updateLauncherModalUI();
-    toast(`Đã đổi launcher chạy game thành: ${type === "heroic" ? "Heroic Games Launcher" : "Steam"}`, "success");
+    toast(`Đã đổi launcher chạy game thành: ${selected === "heroic" ? "Heroic Games Launcher" : selected === "steam" ? "Steam" : "NTE Launcher"}`, "success");
     setTimeout(closeLauncherModal, 400);
   } catch (e) {
     toast(`Lỗi: ${e.message}`, "error");
@@ -2107,7 +2376,20 @@ async function init() {
     savedTheme = localStorage.getItem("wuwavh_theme") || "classic";
     if (savedTheme === "oriental") savedTheme = "cyber";
   } catch { }
-  applyTheme(savedTheme, false);
+  savedWuwaTheme = savedTheme;
+
+  let savedNte = "cyber";
+  try {
+    savedNte = localStorage.getItem("nte_theme") || "cyber";
+  } catch { }
+  savedNteTheme = savedNte;
+
+  try {
+    const games = await ipc("get_games");
+    applyGameUI(games.active);
+  } catch {
+    applyGameUI("wuwa");
+  }
 
   // Load saved launcher preference
   try {
@@ -2159,7 +2441,13 @@ async function init() {
   checkLauncherUpdate(true).catch(() => { });
 
   if (gameStatus && gameStatus.theme && gameStatus.theme !== currentThemeId) {
-    applyTheme(gameStatus.theme, false);
+    if (activeGameId === "nte") {
+      savedNteTheme = gameStatus.theme;
+      applyTheme(gameStatus.theme, false);
+    } else {
+      savedWuwaTheme = gameStatus.theme;
+      applyTheme(gameStatus.theme, false);
+    }
   }
 
   // Allow clicking news cards to refresh version info
@@ -2174,10 +2462,13 @@ async function init() {
     });
   }
 
-  // Auto-update check (only if previously installed version is older than server)
+  // NTE also installs automatically when translation files are missing.
   if (serverInfo && serverInfo.version && gameStatus && gameStatus.has_game) {
-    if (gameStatus.vh_version && gameStatus.vh_version !== serverInfo.version) {
-      console.log(`Auto-updating from ${gameStatus.vh_version} to ${serverInfo.version}`);
+    const needsTranslationUpdate = activeGameId === "nte"
+      ? !gameStatus.installed_vh || gameStatus.vh_version !== serverInfo.version
+      : gameStatus.vh_version && gameStatus.vh_version !== serverInfo.version;
+    if (needsTranslationUpdate) {
+      console.log(`Auto-updating from ${gameStatus.vh_version || "not installed"} to ${serverInfo.version}`);
       setTimeout(startUpdate, 1000);
     }
   }

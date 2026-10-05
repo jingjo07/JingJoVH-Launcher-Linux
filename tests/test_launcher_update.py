@@ -11,7 +11,7 @@ from backend import downloader, launcher_update
 
 ASSET_URL = (
     "https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases/download/"
-    "v9.9/WuWaVH-Launcher-x86_64.AppImage"
+    f"v9.9/{launcher_update.ASSET_NAME}"
 )
 
 

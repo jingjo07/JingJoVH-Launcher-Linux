@@ -10,17 +10,25 @@ ENV/
 
 # Build & Packaging Artifacts
 build/
+.pytest_cache/
+graphify-out/
 *.AppImage
 *.tmp
 *.bak
 *.aria2
 
 # Heavy downloadable mod/game assets (downloaded dynamically by launcher)
-paks/WuWaVH_99_P.pak
+wuwa-paks/WuWaVH_99_P.pak
 frontend/assets/*.tmp
 
+# Local analysis/reference artifacts
+.agents/
+references/*.exe
+references/dangdevvh-theme-draft/
+
 # IDE & OS
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 .DS_Store
 Thumbs.db
