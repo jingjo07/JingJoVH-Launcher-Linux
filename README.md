@@ -146,7 +146,7 @@ Tham gia máy chủ Discord để cùng thảo luận, cập nhật thông tin v
 
 ## 🤝 Nguồn tài nguyên & Lời cảm ơn
 
-- Dữ liệu bản dịch Việt Hóa từ **DangDev (Iris Team)**.
+- Dữ liệu bản dịch Việt Hóa từ **DangDev (Iris Team)** ([Link repo](https://huggingface.co/datasets/BachMacThanh/DangDevVH/tree/main)).
 - Bộ thông số tối ưu Engine.ini từ **AlteriaX** ([WuWa-Configs](https://github.com/AlteriaX/WuWa-Configs) & [NTE-Configs](https://github.com/AlteriaX/NTE-Configs)).
 
 ## ⚠️ Lưu ý bản quyền
