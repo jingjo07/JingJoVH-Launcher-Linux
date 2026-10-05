@@ -11,6 +11,7 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
     <a href="https://discord.com/invite/uNRyaHJR6"><img src="https://img.shields.io/badge/Discord-Tham%20gia-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
     <a href="#"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20SteamDeck-6366f1?style=flat-square" alt="Platform"></a>
     <a href="#"><img src="https://img.shields.io/badge/Python-3.10%2B-10b981?style=flat-square" alt="Python"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square" alt="License: GPL v3"></a>
   </p>
 
   <br>
@@ -149,6 +150,10 @@ Tham gia máy chủ Discord để cùng thảo luận, cập nhật thông tin v
 - Bộ thông số tối ưu Engine.ini từ **AlteriaX** ([WuWa-Configs](https://github.com/AlteriaX/WuWa-Configs) & [NTE-Configs](https://github.com/AlteriaX/NTE-Configs)).
 
 ## ⚠️ Lưu ý bản quyền
-
+ 
 - Ứng dụng là công cụ mã nguồn mở độc lập hỗ trợ người dùng Linux, không thuộc quyền sở hữu của Kuro Games hay Hotta Studio.
 - Mọi thắc mắc hoặc báo lỗi liên quan đến Launcher, vui lòng tạo issue trên GitHub repository.
+
+## 📄 Giấy phép (License)
+
+Dự án này được phát hành theo giấy phép **[GNU General Public License v3.0 (GPLv3)](LICENSE)**. Bạn được tự do sử dụng, sửa đổi và chia sẻ mã nguồn với điều kiện các bản phái sinh cũng phải mở mã nguồn tương tự.
