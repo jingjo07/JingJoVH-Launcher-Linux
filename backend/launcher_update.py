@@ -12,11 +12,12 @@ from backend import downloader
 from backend.version import LAUNCHER_VERSION
 
 
-RELEASE_API = "https://api.github.com/repos/jingjo07/WuwaVH-Linux-Launcher/releases/latest"
+RELEASE_API = "https://api.github.com/repos/jingjo07/JingJoVH-Launcher-Linux/releases/latest"
 ASSET_NAME = "JingJoVH-Launcher-x86_64.AppImage"
 LEGACY_ASSET_NAME = "WuWaVH-Launcher-x86_64.AppImage"
 MAX_DOWNLOAD_SIZE = 300 * 1024 * 1024
-RELEASE_DOWNLOAD_PREFIX = "https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases/download/"
+RELEASE_DOWNLOAD_PREFIX = "https://github.com/jingjo07/JingJoVH-Launcher-Linux/releases/download/"
+LEGACY_RELEASE_DOWNLOAD_PREFIX = "https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases/download/"
 
 
 def _managed_appimage_path():
@@ -61,7 +62,10 @@ def check_update():
     can_install = bool(
         newer and asset
         and re.fullmatch(r"sha256:[a-fA-F0-9]{64}", asset.get("digest", ""))
-        and asset.get("browser_download_url", "").startswith(RELEASE_DOWNLOAD_PREFIX)
+        and (
+            asset.get("browser_download_url", "").startswith(RELEASE_DOWNLOAD_PREFIX)
+            or asset.get("browser_download_url", "").startswith(LEGACY_RELEASE_DOWNLOAD_PREFIX)
+        )
     )
     return {
         "current_version": LAUNCHER_VERSION,

@@ -7,7 +7,7 @@
 Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
 
   <p align="center">
-    <a href="https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases"><img src="https://img.shields.io/github/v/release/jingjo07/WuwaVH-Linux-Launcher?color=38bdf8&label=Release&style=flat-square" alt="Release"></a>
+    <a href="https://github.com/jingjo07/JingJoVH-Launcher-Linux/releases"><img src="https://img.shields.io/github/v/release/jingjo07/JingJoVH-Launcher-Linux?color=38bdf8&label=Release&style=flat-square" alt="Release"></a>
     <a href="https://discord.com/invite/uNRyaHJR6"><img src="https://img.shields.io/badge/Discord-Tham%20gia-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
     <a href="#"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20SteamDeck-6366f1?style=flat-square" alt="Platform"></a>
     <a href="#"><img src="https://img.shields.io/badge/Python-3.10%2B-10b981?style=flat-square" alt="Python"></a>
@@ -60,7 +60,7 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
 
 ### 1. Dùng file AppImage (Khuyên dùng)
 
-Tải file thực thi từ mục [Releases](https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases):
+Tải file thực thi từ mục [Releases](https://github.com/jingjo07/JingJoVH-Launcher-Linux/releases):
 
 ```bash
 chmod +x JingJoVH-Launcher-x86_64.AppImage
@@ -89,8 +89,8 @@ Nếu muốn chạy trực tiếp bằng Python, hệ thống cần cài sẵn P
 Khởi chạy ứng dụng:
 
 ```bash
-git clone https://github.com/jingjo07/WuwaVH-Linux-Launcher.git
-cd WuwaVH-Linux-Launcher
+git clone https://github.com/jingjo07/JingJoVH-Launcher-Linux.git
+cd JingJoVH-Launcher-Linux
 python3 launcher.py
 ```
 

@@ -10,7 +10,7 @@ from backend import downloader, launcher_update
 
 
 ASSET_URL = (
-    "https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases/download/"
+    "https://github.com/jingjo07/JingJoVH-Launcher-Linux/releases/download/"
     f"v9.9/{launcher_update.ASSET_NAME}"
 )
 
@@ -28,7 +28,7 @@ class Response(io.BytesIO):
 def release_info(payload):
     return {
         "tag_name": "v9.9",
-        "html_url": "https://github.com/jingjo07/WuwaVH-Linux-Launcher/releases/tag/v9.9",
+        "html_url": "https://github.com/jingjo07/JingJoVH-Launcher-Linux/releases/tag/v9.9",
         "assets": [{
             "name": launcher_update.ASSET_NAME,
             "browser_download_url": ASSET_URL,
