@@ -381,9 +381,10 @@ body.theme-dangdev .btn-modern-play {
   border-radius: 32px;
   box-shadow: 0 5px 22px rgba(0, 0, 0, .44), inset 0 1px rgba(255, 220, 177, .32);
   text-shadow: 0 1px rgba(0, 0, 0, .45);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-body.theme-dangdev .btn-modern-play:hover {
+body.theme-dangdev .btn-modern-play:not(.running):hover {
   filter: brightness(1.17);
   background: linear-gradient(180deg, #b44b3a, #94382b);
 }
@@ -397,6 +398,44 @@ body.theme-dangdev .btn-modern-play .play-text {
 body.theme-dangdev .btn-modern-play .play-text::after {
   content: "Chơi Game";
   font-size: 20px;
+}
+
+/* Trạng thái Đang Chơi */
+body.theme-dangdev .btn-modern-play.running,
+body.theme-dangdev .btn-modern-play.running:disabled {
+  background: linear-gradient(180deg, #2b614d, #1a3e31) !important;
+  border-color: #79d6ad !important;
+  color: #e6fcf2 !important;
+  box-shadow: 0 5px 24px rgba(26, 62, 49, .6), inset 0 1px rgba(180, 240, 215, .35) !important;
+  cursor: not-allowed !important;
+  animation: dangdev-pulse-running 2.6s ease-in-out infinite;
+}
+
+body.theme-dangdev .btn-modern-play.running:hover,
+body.theme-dangdev .btn-modern-play.running:disabled:hover {
+  filter: none !important;
+  background: linear-gradient(180deg, #2b614d, #1a3e31) !important;
+  cursor: not-allowed !important;
+}
+
+body.theme-dangdev .btn-modern-play.running .play-text::after {
+  content: "Đang Chơi" !important;
+  color: #e6fcf2 !important;
+  text-shadow: 0 0 10px rgba(121, 214, 173, .5);
+}
+
+body.theme-dangdev .btn-modern-play.running .play-icon,
+body.theme-dangdev .btn-modern-play.running .play-arrow {
+  color: #79d6ad;
+}
+
+@keyframes dangdev-pulse-running {
+  0%, 100% {
+    box-shadow: 0 5px 20px rgba(26, 62, 49, .5), inset 0 1px rgba(180, 240, 215, .3);
+  }
+  50% {
+    box-shadow: 0 5px 28px rgba(43, 97, 77, .8), 0 0 16px rgba(121, 214, 173, .4), inset 0 1px rgba(180, 240, 215, .45);
+  }
 }
 
 body.theme-dangdev .modern-footer-tag {
