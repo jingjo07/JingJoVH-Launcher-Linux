@@ -78,7 +78,7 @@ class NteFontTests(unittest.TestCase):
             json.dump(entries, output)
         return path, entries
 
-    def test_ttf_install_creates_override_pak_and_leaves_translation_intact(self):
+    def test_ttf_install_patches_translation_pak_with_backup(self):
         from backend import nte, nte_font
 
         target, original_entries = self._write_translation_pak()
@@ -93,29 +93,31 @@ class NteFontTests(unittest.TestCase):
             game["is_game_running"].return_value = False
             result = nte_font.install_custom_font(font)
             preview = nte_font.get_font_preview()
+            status = nte_font.get_font_status()
 
-        # Translation pak must be completely intact and untouched!
+        # Backup pak must exist and contain original translation entries
+        backup_pak = nte_font._backup_path()
+        self.assertTrue(os.path.isfile(backup_pak))
+        with open(backup_pak, encoding="utf-8") as source:
+            backup_entries = json.load(source)
+        self.assertEqual(backup_entries, original_entries)
+
+        # Target pak must contain the 3 font assets plus intact game.locres
         with open(target, encoding="utf-8") as source:
             entries = json.load(source)
-        self.assertEqual(entries, original_entries)
-
-        # Custom font override pak must exist and contain only the font assets
-        override_pak = os.path.join(self.pak_dir, nte_font.CUSTOM_FONT_PAK_NAME)
-        self.assertTrue(os.path.isfile(override_pak))
-        with open(override_pak, encoding="utf-8") as source:
-            override_entries = json.load(source)
-        self.assertEqual(set(override_entries), set(nte_font.FONT_ASSET_PATHS))
-
-        expected = struct.pack("<I", len(font_data)) + font_data + b"\0\0\0\0"
-        self.assertTrue(
-            all(bytes.fromhex(override_entries[path]) == expected for path in nte_font.FONT_ASSET_PATHS)
+        self.assertEqual(
+            entries[nte_font.LOCRES_ASSET_PATH],
+            original_entries[nte_font.LOCRES_ASSET_PATH],
         )
+        self.assertEqual(set(entries.keys()), set(nte_font.FONT_ASSET_PATHS) | {nte_font.LOCRES_ASSET_PATH})
+
         self.assertEqual(result["font_name"], "My Font")
-        self.assertEqual(result["pak_file"], nte_font.CUSTOM_FONT_PAK_NAME)
+        self.assertEqual(result["pak_file"], nte_font.TRANSLATION_PAK_NAME)
+        self.assertEqual(status["active_font"], "custom")
         self.assertEqual(base64.b64decode(preview["data"]), font_data)
         self.assertEqual(preview["mime"], "font/ttf")
 
-    def test_restore_removes_override_pak(self):
+    def test_restore_recovers_original_translation_pak(self):
         from backend import nte, nte_font
 
         translation, original_entries = self._write_translation_pak()
@@ -127,18 +129,19 @@ class NteFontTests(unittest.TestCase):
             nte, "is_game_running", return_value=False
         ), mock.patch.object(nte_font, "_find_repak", return_value=self.repak):
             nte_font.install_custom_font(font)
-            self.assertTrue(os.path.isfile(os.path.join(self.pak_dir, nte_font.CUSTOM_FONT_PAK_NAME)))
+            self.assertEqual(nte_font.get_font_status()["active_font"], "custom")
             result = nte_font.install_default_font()
+            status = nte_font.get_font_status()
 
-        self.assertFalse(os.path.exists(os.path.join(self.pak_dir, nte_font.CUSTOM_FONT_PAK_NAME)))
         with open(translation, encoding="utf-8") as source:
             self.assertEqual(json.load(source), original_entries)
-        self.assertEqual(result["font_name"], "MiSans (Mặc định NTE)")
+        self.assertEqual(status["active_font"], "default")
+        self.assertEqual(result["font_name"], "MiSans (M\u1eb7c \u0111\u1ecbnh NTE)")
 
     def test_otf_is_converted_to_truetype_before_patching(self):
         from backend import nte, nte_font
 
-        translation, _ = self._write_translation_pak()
+        translation, original_entries = self._write_translation_pak()
         font = os.path.join(self.temp.name, "CFF Font.ttf")
         converted = b"\x00\x01\x00\x00" + b"converted-font-data"
         with open(font, "wb") as output:
@@ -152,12 +155,11 @@ class NteFontTests(unittest.TestCase):
             nte_font.install_custom_font(font)
             preview = nte_font.get_font_preview()
 
-        override_pak = os.path.join(self.pak_dir, nte_font.CUSTOM_FONT_PAK_NAME)
-        with open(override_pak, encoding="utf-8") as source:
+        with open(translation, encoding="utf-8") as source:
             entries = json.load(source)
-        expected = struct.pack("<I", len(converted)) + converted + b"\0\0\0\0"
-        self.assertTrue(
-            all(bytes.fromhex(entries[path]) == expected for path in nte_font.FONT_ASSET_PATHS)
+        self.assertEqual(
+            entries[nte_font.LOCRES_ASSET_PATH],
+            original_entries[nte_font.LOCRES_ASSET_PATH],
         )
         self.assertEqual(base64.b64decode(preview["data"]), converted)
         self.assertEqual(preview["mime"], "font/ttf")
@@ -211,7 +213,7 @@ class NteFontTests(unittest.TestCase):
         with mock.patch.object(nte, "detect_game_path", return_value=self.root), mock.patch.object(
             nte, "is_game_running", return_value=False
         ), mock.patch.object(nte_font, "_find_repak", return_value=self.repak):
-            with self.assertRaisesRegex(ValueError, "dữ liệu font"):
+            with self.assertRaisesRegex(ValueError, "d\u1eef li\u1ec7u font"):
                 nte_font.install_font_from_pak(source_pak)
 
         self.assertFalse(os.path.exists(os.path.join(self.pak_dir, nte_font.CUSTOM_FONT_PAK_NAME)))
