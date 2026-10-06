@@ -170,28 +170,28 @@ class IPC:
                 return {"path": path}
 
             case "get_font_preview":
-                return wuwa_game.get_font_preview()
+                return game_context.get_font_preview()
 
             case "install_font":
                 font_path = data.get("path", "")
                 if not font_path or not os.path.isfile(font_path):
                     raise ValueError("File font không hợp lệ")
-                result = wuwa_game.install_custom_font(font_path)
+                result = game_context.install_custom_font(font_path)
                 return result
 
             case "install_font_from_pak":
                 pak_path = data.get("path", "")
                 if not pak_path or not os.path.isfile(pak_path):
                     raise ValueError("File PAK không hợp lệ")
-                result = wuwa_game.install_font_from_pak(pak_path)
+                result = game_context.install_font_from_pak(pak_path)
                 return result
 
             case "install_default_font":
-                result = wuwa_game.install_default_font()
+                result = game_context.install_default_font()
                 return result
 
             case "get_font_status":
-                return wuwa_game.get_font_status()
+                return game_context.get_font_status()
 
             # ── Launcher Selection (Steam / Heroic) ───────────────
             case "get_launcher_info":

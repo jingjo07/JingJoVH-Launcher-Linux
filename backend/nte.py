@@ -503,6 +503,36 @@ def set_theme(theme_id: str) -> dict:
     return {"theme": theme_id}
 
 
+def get_font_status() -> dict:
+    from backend import nte_font
+
+    return nte_font.get_font_status()
+
+
+def get_font_preview() -> dict:
+    from backend import nte_font
+
+    return nte_font.get_font_preview()
+
+
+def install_custom_font(path: str) -> dict:
+    from backend import nte_font
+
+    return nte_font.install_custom_font(path)
+
+
+def install_font_from_pak(path: str) -> dict:
+    from backend import nte_font
+
+    return nte_font.install_font_from_pak(path)
+
+
+def install_default_font() -> dict:
+    from backend import nte_font
+
+    return nte_font.install_default_font()
+
+
 def get_status() -> dict:
     root = detect_game_path()
     content_root = os.path.join(root, "Client", "WindowsNoEditor") if root else None
@@ -517,7 +547,7 @@ def get_status() -> dict:
         "has_game": root is not None,
         "vh_version": get_vh_version(),
         "launcher_version": LAUNCHER_VERSION,
-        "font_status": {"active_font": "none", "custom_font_name": None, "default_available": False},
+        "font_status": get_font_status(),
         "prefix_path": detect_prefix_path(),
         "launcher_info": get_launcher_info(),
         "theme": get_theme(),

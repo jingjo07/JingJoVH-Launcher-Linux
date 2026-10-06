@@ -47,6 +47,36 @@ if command -v aria2c &>/dev/null; then
     fi
 fi
 
+# repak 0.2.3 builds the V8B override PAK used by NTE custom fonts.
+REPAK_BIN="${REPAK_BIN:-$(command -v repak || true)}"
+if [ ! -x "$REPAK_BIN" ]; then
+    mkdir -p "$SCRIPT_DIR/build"
+    REPAK_CACHED="$SCRIPT_DIR/build/repak_cli-x86_64-unknown-linux-gnu/repak"
+    if [ ! -x "$REPAK_CACHED" ]; then
+        echo "Đang tải repak 0.2.3 từ GitHub..."
+        curl -L -o "$SCRIPT_DIR/build/repak.tar.xz" "https://github.com/trumank/repak/releases/download/v0.2.3/repak_cli-x86_64-unknown-linux-gnu.tar.xz" || true
+        if [ -f "$SCRIPT_DIR/build/repak.tar.xz" ]; then
+            tar -xJf "$SCRIPT_DIR/build/repak.tar.xz" -C "$SCRIPT_DIR/build/" || true
+        fi
+    fi
+    if [ -x "$REPAK_CACHED" ]; then
+        REPAK_BIN="$REPAK_CACHED"
+    fi
+fi
+if [ -x "$REPAK_BIN" ]; then
+    echo "Tích hợp repak 0.2.3 vào AppDir..."
+    cp "$REPAK_BIN" "$APP_DIR/usr/bin/repak"
+else
+    echo "[!] Cảnh báo: Không tìm thấy repak 0.2.3 để đóng gói font NTE."
+fi
+
+# Tích hợp fontTools cho tính năng chuyển đổi font OTF/CFF sang TTF (NTE)
+FONTTOOLS_DIR="$(python3 -c 'import fontTools, os; print(os.path.dirname(fontTools.__file__))' 2>/dev/null || true)"
+if [ -n "$FONTTOOLS_DIR" ] && [ -d "$FONTTOOLS_DIR" ]; then
+    echo "Tích hợp fontTools vào AppDir..."
+    cp -r "$FONTTOOLS_DIR" "$APP_DIR/"
+fi
+
 # Icon
 ICON_SRC=""
 if [ -f "$SCRIPT_DIR/wuwavh.png" ]; then

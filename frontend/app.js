@@ -818,7 +818,6 @@ const fontPage = document.getElementById("font-page");
 const themePage = document.getElementById("theme-page");
 
 function switchTab(tab) {
-  if (activeGameId === "nte" && tab === "font") tab = "home";
   currentTab = tab;
 
   // Preserve the user's open/closed sidebar state in DangDev.
@@ -1596,12 +1595,13 @@ async function updateFontStatus() {
     let detail = "Hãy cài font để hiển thị tiếng Việt đúng";
     let icon = "⚠️";
 
+    const defaultFontName = activeGameId === "nte" ? "MiSans (Mặc định NTE)" : "LaguSans Bold (Mặc định)";
     if (status.active_font === "custom") {
       display = status.custom_font_name || "Font tuỳ chỉnh";
       detail = "Font tuỳ chỉnh đang được sử dụng";
       icon = "🎨";
     } else if (status.active_font === "default") {
-      display = "LaguSans Bold (Mặc định)";
+      display = defaultFontName;
       detail = "Font mặc định của bản Việt Hoá";
       icon = "✅";
     }
@@ -1617,7 +1617,7 @@ async function updateFontStatus() {
 
     // Update Classic View
     if (fontCurrent) {
-      fontCurrent.textContent = status.active_font === "custom" ? (status.custom_font_name || "Custom Font") : (status.active_font === "default" ? "LaguSans Bold" : "Chưa cài font");
+      fontCurrent.textContent = status.active_font === "custom" ? (status.custom_font_name || "Custom Font") : (status.active_font === "default" ? defaultFontName : "Chưa cài font");
       fontCurrent.className = `font-status-value ${status.active_font}`;
     }
     if (fontDetail) fontDetail.textContent = detail;
@@ -1736,7 +1736,7 @@ if (modernFontRestoreBtn) {
     }
 
     if (fontProgress) fontProgress.style.display = "block";
-    if (fontProgressText) fontProgressText.textContent = "↩️ Đang khôi phục font gốc LaguSans Bold...";
+    if (fontProgressText) fontProgressText.textContent = activeGameId === "nte" ? "↩️ Đang khôi phục font gốc MiSans..." : "↩️ Đang khôi phục font gốc LaguSans Bold...";
 
     try {
       const result = await ipc("install_default_font");
@@ -1986,6 +1986,14 @@ function applyGameUI(gameId) {
     ? "Nhập đường dẫn thư mục Neverness to Everness (chứa Client/WindowsNoEditor/HT):"
     : "Nhập đường dẫn thư mục Wuthering Waves (thư mục chứa Client/, Binaries/...):";
   if (pathInput) pathInput.placeholder = nte ? "/home/user/Games/Neverness To Everness" : "/home/user/Games/WutheringWaves";
+  const fontPageSubtitle = document.getElementById("font-page-subtitle");
+  if (fontPageSubtitle) fontPageSubtitle.textContent = nte
+    ? "Tùy biến phông chữ hiển thị trong Neverness to Everness Việt Hoá"
+    : "Tùy biến phông chữ hiển thị trong game Wuthering Waves Việt Hoá";
+  const modernFontSubtitle = document.getElementById("modern-font-subtitle");
+  if (modernFontSubtitle) modernFontSubtitle.textContent = nte
+    ? "Thay thế MiSans của bản Việt Hoá bằng TTF, OTF hoặc PAK font NTE"
+    : "Thay thế font mặc định của bản Việt Hoá bằng font của bạn (TTF, OTF hoặc PAK)";
 
   // Dynamic News Labels
   const classicNewsLabel = document.querySelector(".news-label");
@@ -2004,7 +2012,6 @@ function applyGameUI(gameId) {
   // Update Play Button
   updatePlayBtn();
 
-  if (nte && currentTab === "font") switchTab("home");
   applyTheme(nte ? savedNteTheme : savedWuwaTheme, false);
   if (currentTab === "theme") renderThemeList();
   updateLauncherBadge();

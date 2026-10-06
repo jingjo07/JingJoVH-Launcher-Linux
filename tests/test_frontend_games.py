@@ -51,6 +51,20 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn('class="watercolor-news"', html)
         self.assertNotIn('class="watercolor-featured"', html)
 
+    def test_nte_custom_font_ui_is_enabled(self):
+        html = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
+        app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
+        style = (ROOT / "frontend/style.css").read_text(encoding="utf-8")
+        launcher = (ROOT / "launcher.py").read_text(encoding="utf-8")
+
+        self.assertNotIn('body[data-game="nte"] #dock-tab-font', style)
+        self.assertNotIn('body[data-game="nte"] #drawer-item-font', style)
+        self.assertNotIn('activeGameId === "nte" && tab === "font"', app)
+        self.assertIn('id="font-page-subtitle"', html)
+        self.assertIn('id="modern-font-subtitle"', html)
+        self.assertIn('game_context.install_custom_font', launcher)
+        self.assertIn('game_context.get_font_status', launcher)
+
     def test_themes_separation(self):
         themes_text = (ROOT / "frontend/themes/themes.js").read_text(encoding="utf-8")
         app_text = (ROOT / "frontend/app.js").read_text(encoding="utf-8")

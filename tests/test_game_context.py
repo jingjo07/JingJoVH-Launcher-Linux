@@ -107,6 +107,20 @@ class GameContextTests(unittest.TestCase):
         getter.assert_called_once_with()
         setter.assert_called_once_with("heroic")
 
+    def test_font_management_dispatches_to_active_game(self):
+        from backend import game_context
+
+        game_context.set_active_game("nte")
+        selected = game_context.GAMES["nte"]
+        with mock.patch.object(selected, "get_font_status", return_value={"active_font": "custom"}) as status, mock.patch.object(
+            selected, "install_custom_font", return_value={"font_name": "NTE Font"}
+        ) as install:
+            self.assertEqual(game_context.get_font_status()["active_font"], "custom")
+            self.assertEqual(game_context.install_custom_font("/font.ttf")["font_name"], "NTE Font")
+
+        status.assert_called_once_with()
+        install.assert_called_once_with("/font.ttf")
+
 
 if __name__ == "__main__":
     unittest.main()

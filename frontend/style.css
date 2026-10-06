@@ -251,10 +251,6 @@ body[data-game="nte"] #nte-perf-restore-btn {
   font-size: 12px;
 }
 
-body[data-game="nte"] #dock-tab-font,
-body[data-game="nte"] #drawer-item-font,
-body[data-game="nte"] #tab-font,
-body[data-game="nte"] #cyber-nav-font,
 body[data-game="nte"] #launch-options-modern,
 body[data-game="nte"] .cyber-config-card,
 body[data-game="nte"] #launcher-badge-modern,

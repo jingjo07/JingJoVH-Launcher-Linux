@@ -115,6 +115,26 @@ def restore_perf_settings():
     return wuwa_performance.restore_default_ini()
 
 
+def get_font_status():
+    return active_game().get_font_status()
+
+
+def get_font_preview():
+    return active_game().get_font_preview()
+
+
+def install_custom_font(path: str):
+    return active_game().install_custom_font(path)
+
+
+def install_font_from_pak(path: str):
+    return active_game().install_font_from_pak(path)
+
+
+def install_default_font():
+    return active_game().install_default_font()
+
+
 def install_wine_dll_overrides() -> dict:
     selected = active_game()
     if hasattr(selected, "install_wine_dll_overrides"):

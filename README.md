@@ -46,8 +46,10 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
   - Tùy chọn tiện ích cho NTE: Mở thiết lập Lumen, Bỏ video giới thiệu khởi động, Tắt mouse smoothing / FOV scaling.
   - Khôi phục Engine.ini gốc dễ dàng bất kỳ lúc nào chỉ bằng một nút bấm.
 
-- **Quản lý Font chữ (WuWa)**:
-  - Hỗ trợ đổi font chữ hiển thị trong game bằng file font `.ttf`, `.otf` hoặc file `.pak` có sẵn.
+- **Quản lý Font chữ (WuWa & NTE)**:
+  - Hỗ trợ đổi font chữ hiển thị trong game bằng file font `.ttf`, `.otf` hoặc file `.pak` có sẵn cho cả hai tựa game.
+  - Tự động nạp, chuyển đổi định dạng và đóng gói font vào PAK game hoặc PAK Việt Hóa.
+  - Khôi phục font gốc dễ dàng (LaguSans Bold cho WuWa, MiSans cho NTE).
 
 - **Cấu hình WINEDLLOVERRIDES & Trình khởi chạy**:
   - Tự động cấu hình `WINEDLLOVERRIDES="winhttp=n,b"` cho cả Steam và Heroic để game nạp proxy DLL việt hóa.
