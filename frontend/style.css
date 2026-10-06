@@ -545,6 +545,7 @@ body[data-game="nte"] .prefix-input-wrap {
   inset: 0;
   z-index: 40;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding-top: 56px;
@@ -560,13 +561,6 @@ body[data-game="nte"] .prefix-input-wrap {
   opacity: 1;
   pointer-events: all;
   transform: translateX(0);
-}
-
-.font-progress {
-  padding: 10px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--theme-accent-bright);
 }
 
 /* ── Theme Page (Tab) ─────────────────────────────────────── */

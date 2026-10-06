@@ -1017,6 +1017,7 @@ body.theme-cyber #theme-page {
   bottom: 0;
   z-index: 80;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow-y: auto;
@@ -1566,13 +1567,6 @@ body.theme-cyber .btn-modern-pak-install:hover {
   transform: translateY(-1px);
 }
 
-body.theme-cyber .font-progress {
-  color: var(--cyan);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  text-shadow: 0 0 8px rgba(255, 26, 83, 0.5);
-}
-
 /* ════════════════════════════════════════════════════════════
    CYBER THEME VIEW STYLING
    ════════════════════════════════════════════════════════════ */
@@ -1713,7 +1707,6 @@ body.theme-cyber .theme-apply-btn {
 body.theme-cyber .cyber-progress-title,
 body.theme-cyber .btn-modern-restore,
 body.theme-cyber .modern-field-label,
-body.theme-cyber .font-progress,
 body.theme-cyber #theme-page .theme-header-badge,
 body.theme-cyber #perf-page .perf-section-title,
 body.theme-cyber #perf-page .perf-preset-gpu-label,

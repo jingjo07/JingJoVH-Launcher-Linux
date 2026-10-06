@@ -1008,13 +1008,6 @@
   color: var(--gold-bright) !important;
 }
 
-.font-progress {
-  color: var(--gold-bright) !important;
-  font-family: var(--font-main) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.5px !important;
-  text-shadow: 0 0 8px rgba(252, 237, 189, 0.35) !important;
-}
 
 .toast.success {
   border-color: var(--gold-bright) !important;

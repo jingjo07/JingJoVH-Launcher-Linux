@@ -1552,8 +1552,6 @@ const modernFontPathInput = document.getElementById("modern-font-path");
 const modernFontBrowseBtn = document.getElementById("modern-btn-browse");
 const modernFontInstallBtn = document.getElementById("modern-btn-install");
 const modernFontPickPakBtn = document.getElementById("modern-btn-pick-pak");
-const fontProgress = document.getElementById("font-progress");
-const fontProgressText = document.getElementById("font-progress-text");
 
 let selectedFontFilePath = "";
 let fontPreviewFace = null;
@@ -1673,22 +1671,20 @@ if (modernFontInstallBtn) {
       return;
     }
 
-    const isPak = selectedFontFilePath.toLowerCase().endsWith(".pak");
-    if (fontProgress) fontProgress.style.display = "block";
-    if (fontProgressText) fontProgressText.textContent = isPak ? "📦 Đang cài đặt font từ file PAK..." : "⚙️ Đang chuyển đổi và cài đặt font...";
+    modernFontInstallBtn.disabled = true;
 
     try {
       const result = await ipc("install_font", {
         path: selectedFontFilePath
       });
 
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`✓ Đã cài đặt font: ${result.font_name}`, "success");
       updateFontStatus();
       await refreshStatus();
     } catch (e) {
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`Lỗi cài font: ${e.message}`, "error");
+    } finally {
+      modernFontInstallBtn.disabled = false;
     }
   };
 }
@@ -1711,17 +1707,16 @@ if (modernFontPickPakBtn) {
         modernFontPathInput.value = pick.path.split("/").pop();
       }
 
-      if (fontProgress) fontProgress.style.display = "block";
-      if (fontProgressText) fontProgressText.textContent = "📦 Đang cài đặt font từ file PAK...";
+      modernFontPickPakBtn.disabled = true;
 
       const result = await ipc("install_font_from_pak", { path: pick.path });
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`✓ Đã cài font PAK: ${result.font_name}`, "success");
       updateFontStatus();
       await refreshStatus();
     } catch (e) {
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`Lỗi cài font PAK: ${e.message}`, "error");
+    } finally {
+      modernFontPickPakBtn.disabled = false;
     }
   };
 }
@@ -1735,18 +1730,17 @@ if (modernFontRestoreBtn) {
       return;
     }
 
-    if (fontProgress) fontProgress.style.display = "block";
-    if (fontProgressText) fontProgressText.textContent = activeGameId === "nte" ? "↩️ Đang khôi phục font gốc MiSans..." : "↩️ Đang khôi phục font gốc LaguSans Bold...";
+    modernFontRestoreBtn.disabled = true;
 
     try {
       const result = await ipc("install_default_font");
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`✓ Đã khôi phục font gốc: ${result.font_name}`, "success");
       updateFontStatus();
       await refreshStatus();
     } catch (e) {
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`Lỗi: ${e.message}`, "error");
+    } finally {
+      modernFontRestoreBtn.disabled = false;
     }
   };
 }
@@ -1761,27 +1755,22 @@ if (fontPickCustomBtn) {
       return;
     }
 
-    if (fontProgress) fontProgress.style.display = "block";
-    if (fontProgressText) fontProgressText.textContent = "📂 Đang mở hộp thoại chọn file...";
+    fontPickCustomBtn.disabled = true;
 
     try {
       const pick = await ipc("pick_font_file");
-      if (!pick.path) {
-        if (fontProgress) fontProgress.style.display = "none";
-        return;
-      }
+      if (!pick.path) return;
 
       const isPak = pick.path.toLowerCase().endsWith(".pak");
-      if (fontProgressText) fontProgressText.textContent = isPak ? "📦 Đang cài đặt font từ file PAK..." : "⚙️ Đang chuyển đổi và cài đặt font...";
       const result = isPak ? await ipc("install_font_from_pak", { path: pick.path }) : await ipc("install_font", { path: pick.path });
-      if (fontProgress) fontProgress.style.display = "none";
 
       toast(`✓ Đã cài font: ${result.font_name}`, "success");
       updateFontStatus();
       await refreshStatus();
     } catch (e) {
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`Lỗi cài font: ${e.message}`, "error");
+    } finally {
+      fontPickCustomBtn.disabled = false;
     }
   };
 }
@@ -1794,26 +1783,21 @@ if (fontPickPakBtn) {
       return;
     }
 
-    if (fontProgress) fontProgress.style.display = "block";
-    if (fontProgressText) fontProgressText.textContent = "📂 Đang mở hộp thoại chọn file PAK...";
+    fontPickPakBtn.disabled = true;
 
     try {
       const pick = await ipc("pick_font_pak");
-      if (!pick.path) {
-        if (fontProgress) fontProgress.style.display = "none";
-        return;
-      }
+      if (!pick.path) return;
 
-      if (fontProgressText) fontProgressText.textContent = "📦 Đang cài đặt font từ file PAK...";
       const result = await ipc("install_font_from_pak", { path: pick.path });
-      if (fontProgress) fontProgress.style.display = "none";
 
       toast(`✓ Đã cài font PAK: ${result.font_name}`, "success");
       updateFontStatus();
       await refreshStatus();
     } catch (e) {
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`Lỗi cài font PAK: ${e.message}`, "error");
+    } finally {
+      fontPickPakBtn.disabled = false;
     }
   };
 }
@@ -1826,19 +1810,18 @@ if (fontInstallDefaultBtn) {
       return;
     }
 
-    if (fontProgress) fontProgress.style.display = "block";
-    if (fontProgressText) fontProgressText.textContent = "↩️ Đang cài font mặc định...";
+    fontInstallDefaultBtn.disabled = true;
 
     try {
       const result = await ipc("install_default_font");
-      if (fontProgress) fontProgress.style.display = "none";
 
       toast(`✓ Đã cài font: ${result.font_name}`, "success");
       updateFontStatus();
       await refreshStatus();
     } catch (e) {
-      if (fontProgress) fontProgress.style.display = "none";
       toast(`Lỗi: ${e.message}`, "error");
+    } finally {
+      fontInstallDefaultBtn.disabled = false;
     }
   };
 }

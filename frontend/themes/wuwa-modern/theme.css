@@ -861,9 +861,6 @@
   color: var(--mint-bright) !important;
 }
 
-.font-progress {
-  color: var(--mint-bright) !important;
-}
 
 .toast.success {
   border-color: var(--mint-bright) !important;
