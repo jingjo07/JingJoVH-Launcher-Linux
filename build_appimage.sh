@@ -35,7 +35,14 @@ cp "$SCRIPT_DIR/launcher.py" "$APP_DIR/"
 cp "$SCRIPT_DIR/wuwa_launcher.sh" "$APP_DIR/"
 
 if [ -d "$SCRIPT_DIR/wuwa-paks" ]; then
-    cp -r "$SCRIPT_DIR/wuwa-paks" "$APP_DIR/"
+    mkdir -p "$APP_DIR/wuwa-paks"
+    # Chỉ copy các file template font và DLL cần thiết, không đóng gói bản dịch WuWaVH_99_P.pak nặng (>60MB)
+    for f in "$SCRIPT_DIR/wuwa-paks"/*; do
+        fname="$(basename "$f")"
+        if [ "$fname" != "WuWaVH_99_P.pak" ] && [ -f "$f" ]; then
+            cp "$f" "$APP_DIR/wuwa-paks/"
+        fi
+    done
 fi
 
 # Tích hợp sẵn Aria2c tốc độ cao vào AppImage nếu có trên máy build
@@ -75,6 +82,7 @@ FONTTOOLS_DIR="$(python3 -c 'import fontTools, os; print(os.path.dirname(fontToo
 if [ -n "$FONTTOOLS_DIR" ] && [ -d "$FONTTOOLS_DIR" ]; then
     echo "Tích hợp fontTools vào AppDir..."
     cp -r "$FONTTOOLS_DIR" "$APP_DIR/"
+    rm -rf "$APP_DIR/fontTools/tests" "$APP_DIR/fontTools"/*_test.py 2>/dev/null || true
 fi
 
 # Icon
@@ -134,6 +142,14 @@ echo "[JingJoVH] WebKitGTK không khả dụng, đang khởi động chế độ
 exec bash "$APPDIR/wuwa_launcher.sh" "$@"
 EOF
 chmod +x "$APP_DIR/AppRun"
+
+# Tối ưu hóa kích thước AppDir
+echo "Dọn dẹp và tối ưu dung lượng AppDir..."
+find "$APP_DIR" -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+find "$APP_DIR" -type f -name "*.pyc" -delete 2>/dev/null || true
+if command -v strip &>/dev/null; then
+    strip --strip-unneeded "$APP_DIR/usr/bin/"* "$APP_DIR/usr/lib/"* 2>/dev/null || true
+fi
 
 # 3. Tải appimagetool nếu chưa có
 echo "[3/4] Chuẩn bị appimagetool..."
