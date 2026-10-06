@@ -155,46 +155,33 @@ def _backup_path() -> str:
     return os.path.join(os.path.dirname(_cache_path()), "translation-font-backup.pak")
 
 
-def _patch_translation_pak(font_data: bytes):
+def _create_font_override_pak(font_data: bytes):
     pak_dir = _pak_dir()
-    target = os.path.join(pak_dir, TRANSLATION_PAK_NAME)
-    if not os.path.isfile(target):
+    translation_pak = os.path.join(pak_dir, TRANSLATION_PAK_NAME)
+    if not os.path.isfile(translation_pak):
         raise FileNotFoundError("Hãy cài Việt hóa NTE trước khi đổi font")
-    original_entries = _pak_entries(target)
-    if not set(FONT_ASSET_PATHS).issubset(original_entries):
-        raise ValueError("PAK Việt hóa NTE không chứa font để thay thế")
 
+    # If an earlier run modified the translation pak and created a backup, restore it
     backup = _backup_path()
-    if not os.path.isfile(backup):
-        os.makedirs(os.path.dirname(backup), exist_ok=True)
-        temporary_backup = backup + ".tmp"
-        shutil.copyfile(target, temporary_backup)
-        os.replace(temporary_backup, backup)
+    if os.path.isfile(backup):
+        shutil.copyfile(backup, translation_pak)
+
+    target_override = os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME)
 
     with tempfile.TemporaryDirectory(prefix=".nte-font-", dir=pak_dir) as workspace:
         source_root = os.path.join(workspace, "source")
-        subprocess.run(
-            [_find_repak(), "unpack", "-q", "-o", source_root, target],
-            check=True,
-            capture_output=True,
-        )
         for relative in FONT_ASSET_PATHS:
             path = os.path.join(source_root, *relative.split("/"))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, "wb") as output:
                 output.write(_wrap_ufont(font_data))
-        packed = os.path.join(workspace, TRANSLATION_PAK_NAME)
+        packed = os.path.join(workspace, CUSTOM_FONT_PAK_NAME)
         subprocess.run(
             [_find_repak(), "pack", "-q", "--version", "V8B", source_root, packed],
             check=True,
             capture_output=True,
         )
-        if _pak_entries(packed) != original_entries:
-            raise RuntimeError("repak tạo lại PAK Việt hóa NTE không hợp lệ")
-        os.replace(packed, target)
-
-    old_override = os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME)
-    if os.path.isfile(old_override):
-        os.unlink(old_override)
+        os.replace(packed, target_override)
 
 
 def _save_preview(data: bytes, mime: str):
@@ -221,8 +208,8 @@ def get_font_status() -> dict:
     except FileNotFoundError:
         return {"active_font": "none", "custom_font_name": None, "default_available": False}
     default = os.path.isfile(os.path.join(pak_dir, TRANSLATION_PAK_NAME))
+    custom = os.path.isfile(os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME))
     cfg = wuwa_game.load_config()
-    custom = bool(cfg.get("nte_custom_font_name") and os.path.isfile(_backup_path()))
     return {
         "active_font": "custom" if custom else "default" if default else "none",
         "custom_font_name": cfg.get("nte_custom_font_name") if custom else None,
@@ -254,17 +241,17 @@ def install_custom_font(font_path: str) -> dict:
     if mime == "font/otf":
         font_data = _convert_cff_to_ttf(font_data)
         mime = "font/ttf"
-    _patch_translation_pak(font_data)
+    _create_font_override_pak(font_data)
 
     _save_preview(font_data, mime)
     name = os.path.splitext(os.path.basename(font_path))[0]
     _save_name(name)
-    return {"ok": True, "font_name": name, "pak_file": TRANSLATION_PAK_NAME}
+    return {"ok": True, "font_name": name, "pak_file": CUSTOM_FONT_PAK_NAME}
 
 
 def install_font_from_pak(pak_path: str) -> dict:
     _require_stopped()
-    if _pak_entries(pak_path) != set(FONT_ASSET_PATHS):
+    if not set(FONT_ASSET_PATHS).issubset(_pak_entries(pak_path)):
         raise ValueError("PAK không phải gói font NTE hợp lệ")
     extracted = None
     mime = None
@@ -281,23 +268,23 @@ def install_font_from_pak(pak_path: str) -> dict:
     if mime == "font/otf":
         extracted = _convert_cff_to_ttf(extracted)
         mime = "font/ttf"
-    _patch_translation_pak(extracted)
+    _create_font_override_pak(extracted)
     _save_preview(extracted, mime)
     name = os.path.splitext(os.path.basename(pak_path))[0]
     _save_name(name)
-    return {"ok": True, "font_name": name, "pak_file": TRANSLATION_PAK_NAME}
+    return {"ok": True, "font_name": name, "pak_file": CUSTOM_FONT_PAK_NAME}
 
 
 def install_default_font() -> dict:
     _require_stopped()
     pak_dir = _pak_dir()
-    target = os.path.join(pak_dir, TRANSLATION_PAK_NAME)
+    override = os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME)
+    if os.path.isfile(override):
+        os.unlink(override)
     backup = _backup_path()
-    if os.path.isfile(backup):
-        os.replace(backup, target)
-    old_override = os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME)
-    if os.path.isfile(old_override):
-        os.unlink(old_override)
+    translation_pak = os.path.join(pak_dir, TRANSLATION_PAK_NAME)
+    if os.path.isfile(backup) and os.path.isfile(translation_pak):
+        shutil.copyfile(backup, translation_pak)
     cache = _cache_path()
     if os.path.isfile(cache):
         os.unlink(cache)
