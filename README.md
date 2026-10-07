@@ -19,7 +19,9 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
 </div>
 
 ---
-
+## Thông báo
+- Hiện DangDev đã có launcher VH chính thức dành cho linux;
+  - Link Tải: [DangDevVH](https://huggingface.co/datasets/BachMacThanh/DangDevVH/resolve/main/Launcher/DangDevVH-x86_64.AppImage?download=true)
 ## 📌 Tính năng chính
 
 - **Hỗ trợ đa tựa game**:
