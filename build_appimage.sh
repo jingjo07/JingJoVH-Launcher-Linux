@@ -85,6 +85,10 @@ if [ -n "$FONTTOOLS_DIR" ] && [ -d "$FONTTOOLS_DIR" ]; then
     rm -rf "$APP_DIR/fontTools/tests" "$APP_DIR/fontTools"/*_test.py 2>/dev/null || true
 fi
 
+# Mã hóa mã nguồn backend và tạo native C payload
+echo "Mã hóa mã nguồn backend và tạo native payload (libJingJoNative)..."
+python3 "$SCRIPT_DIR/tools/encrypt_payload.py" "$APP_DIR"
+
 # Icon
 ICON_SRC=""
 if [ -f "$SCRIPT_DIR/wuwavh.png" ]; then
