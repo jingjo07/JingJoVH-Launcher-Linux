@@ -1,7 +1,7 @@
 """
 Game process management for WuWaVH Launcher
 """
-import os, subprocess, json, glob, shutil, time, re
+import os, subprocess, json, glob, shutil, time, re, copy, threading
 from backend.version import LAUNCHER_VERSION
 try:
     import psutil
@@ -19,6 +19,13 @@ _cache = {
     "launcher_info_ts": 0,
 }
 _CACHE_TTL = 30  # seconds — recalculate heavy lookups every 30s at most
+_config_lock = threading.RLock()  # ponytail: one short config-file lock; split only if writes become a bottleneck.
+
+
+class _ConfigDict(dict):
+    def __init__(self, values):
+        super().__init__(copy.deepcopy(values))
+        self._base = copy.deepcopy(dict(self))
 
 CONFIG_PATH = os.path.expanduser("~/.config/wuwavh/config.json")
 GAME_EXE_NAME = "Client-Win64-Shipping.exe"
@@ -47,39 +54,51 @@ DEFAULT_SEARCH_PATHS = [
 
 def load_config() -> dict:
     """Load config with file-mtime cache to avoid redundant disk reads."""
-    try:
-        mtime = os.path.getmtime(CONFIG_PATH) if os.path.exists(CONFIG_PATH) else 0
-    except OSError:
-        mtime = 0
-    if _cache["config"] is not None and mtime == _cache["config_mtime"]:
-        return _cache["config"]
-    if os.path.exists(CONFIG_PATH):
+    with _config_lock:
         try:
-            with open(CONFIG_PATH) as f:
-                cfg = json.load(f)
-            _cache["config"] = cfg
-            _cache["config_mtime"] = mtime
-            return cfg
-        except Exception:
-            pass
-    return {}
+            mtime = os.path.getmtime(CONFIG_PATH) if os.path.exists(CONFIG_PATH) else 0
+        except OSError:
+            mtime = 0
+        if _cache["config"] is not None and mtime == _cache["config_mtime"]:
+            return _ConfigDict(_cache["config"])
+        if os.path.exists(CONFIG_PATH):
+            try:
+                with open(CONFIG_PATH) as f:
+                    cfg = json.load(f)
+                _cache["config"] = cfg
+                _cache["config_mtime"] = mtime
+                return _ConfigDict(cfg)
+            except Exception:
+                pass
+        return _ConfigDict({})
 
 def _invalidate_config_cache():
     """Call after saving config to force re-read on next load_config()."""
-    _cache["config"] = None
-    _cache["config_mtime"] = 0
-    _cache["game_path"] = None
-    _cache["game_path_ts"] = 0
-    _cache["launcher_info"] = None
-    _cache["launcher_info_ts"] = 0
+    with _config_lock:
+        _cache["config"] = None
+        _cache["config_mtime"] = 0
+        _cache["game_path"] = None
+        _cache["game_path_ts"] = 0
+        _cache["launcher_info"] = None
+        _cache["launcher_info_ts"] = 0
 
 def save_config(cfg: dict):
-    os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
-    temp_path = CONFIG_PATH + ".tmp"
-    with open(temp_path, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=2)
-    os.replace(temp_path, CONFIG_PATH)
-    _invalidate_config_cache()
+    with _config_lock:
+        if isinstance(cfg, _ConfigDict):
+            merged = dict(load_config())
+            for key in cfg._base.keys() - cfg.keys():
+                merged.pop(key, None)
+            merged.update({key: value for key, value in cfg.items() if key not in cfg._base or value != cfg._base[key]})
+        else:
+            merged = dict(cfg)
+        os.makedirs(os.path.dirname(CONFIG_PATH), exist_ok=True)
+        temp_path = CONFIG_PATH + ".tmp"
+        with open(temp_path, "w", encoding="utf-8") as f:
+            json.dump(merged, f, indent=2)
+        os.replace(temp_path, CONFIG_PATH)
+        if isinstance(cfg, _ConfigDict):
+            cfg._base = copy.deepcopy(dict(cfg))
+        _invalidate_config_cache()
 
 def detect_game_path() -> str | None:
     """Try to auto-detect Wuthering Waves installation path (cached for 30s)."""

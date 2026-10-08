@@ -1,6 +1,4 @@
-"""
-WuWaVH Pak Downloader — reverse engineered from DangDevVH.exe
-"""
+"""Pak and resource downloader module for JingJoVH Launcher."""
 import urllib.request, urllib.error, urllib.parse, json, os, hashlib, hmac, time, base64, secrets, ssl
 
 # ── Encrypted Remote Endpoints (Obfuscated) ──────────────────────────────────
@@ -310,8 +308,6 @@ def download_file(url: str, dest: str, progress_cb=None, num_workers: int = 8, c
                 engine_cb("aria2c")
             try:
                 _download_aria2(resolved_url, tmp_dest, total_size, headers_base, progress_cb)
-                if os.path.exists(dest):
-                    os.remove(dest)
                 os.replace(tmp_dest, dest)
                 if progress_cb:
                     progress_cb(total_size, total_size)
@@ -335,8 +331,6 @@ def download_file(url: str, dest: str, progress_cb=None, num_workers: int = 8, c
             engine_cb("dynamic")
         try:
             _download_dynamic_chunks(resolved_url, tmp_dest, total_size, num_workers, chunk_size, headers_base, progress_cb)
-            if os.path.exists(dest):
-                os.remove(dest)
             os.replace(tmp_dest, dest)
             if progress_cb:
                 progress_cb(total_size, total_size)
@@ -355,8 +349,6 @@ def download_file(url: str, dest: str, progress_cb=None, num_workers: int = 8, c
     if engine_cb:
         engine_cb("urllib")
     _download_single_stream(resolved_url, tmp_dest, headers_base, progress_cb)
-    if os.path.exists(dest):
-        os.remove(dest)
     os.replace(tmp_dest, dest)
     if progress_cb and total_size:
         progress_cb(total_size, total_size)

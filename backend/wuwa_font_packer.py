@@ -1,18 +1,4 @@
-"""
-WuWaVH Font Packer — Convert TTF/OTF to PAK v12 for Wuthering Waves
-
-Reverse-engineered from Default_font_99_P.pak structure:
-  [Entry Record: 53 bytes]  — offset/size/sha1 of the font data
-  [Font Data: N bytes]      — Raw TrueType/OpenType font bytes
-  [Suffix: 646 bytes]       — Index + PathHash + DirIndex + Footer
-                               (contains file paths and offsets that must be updated)
-
-The suffix contains 4 offset/size fields that reference the font data size:
-  suffix[30:38]  — PathHash index offset  (= 53 + N + 127)
-  suffix[70:78]  — FullDir index offset   (= 53 + N + 127 + 20)
-  suffix[115:123] — Font data size reference (= N)
-  footer[8:16]   — Index offset in footer (= 53 + N)
-"""
+"""Font packing utility for Wuthering Waves (converts TTF/OTF to PAK v12)."""
 
 import os
 import struct

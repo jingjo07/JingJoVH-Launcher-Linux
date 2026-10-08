@@ -12,6 +12,7 @@ ENV/
 build/
 .pytest_cache/
 graphify-out/
+.local-backups/
 *.AppImage
 *.tmp
 *.bak

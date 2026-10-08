@@ -45,13 +45,34 @@
 
     <!-- Top Right Controls -->
     <div class="topbar-right-controls">
-      <label class="game-select-wrap" for="game-select">
-        <span>Tựa game</span>
-        <select id="game-select" aria-label="Chọn tựa game">
+      <div class="game-select-wrap">
+        <select id="game-select" hidden aria-hidden="true">
           <option value="wuwa">Wuthering Waves</option>
           <option value="nte">Neverness to Everness</option>
         </select>
-      </label>
+        <button type="button" id="game-switch-trigger" aria-expanded="false" aria-controls="game-switch-menu">
+          <img id="game-switch-icon" src="assets/icon.png" alt="" class="game-switch-icon">
+          <span class="game-switch-copy">
+            <strong id="game-switch-name">Wuthering Waves</strong>
+          </span>
+          <svg class="game-switch-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+        <div id="game-switch-menu" hidden>
+          <button type="button" class="game-switch-option" data-game="wuwa" aria-current="true">
+            <img src="assets/icon.png" alt="" class="game-switch-icon">
+            <span>Wuthering Waves</span>
+            <span class="game-switch-check" aria-hidden="true">✓</span>
+          </button>
+          <button type="button" class="game-switch-option" data-game="nte" aria-current="false">
+            <img src="assets/NTE.png" alt="" class="game-switch-icon">
+            <span>Neverness to Everness</span>
+            <span class="game-switch-check" aria-hidden="true">✓</span>
+          </button>
+        </div>
+      </div>
       <!-- Cyber Topbar Controls (Game Files + BGM Player) -->
       <div class="cyber-top-controls cyber-only">
         <button class="cyber-game-files-btn" id="cyber-btn-game-files" title="Mở thư mục cài đặt game">
@@ -171,7 +192,7 @@
 
     <div class="drawer-menu-label">MENU</div>
     <div class="drawer-nav">
-      <button type="button" class="drawer-nav-item active" id="drawer-item-home">
+      <button type="button" class="drawer-nav-item active" id="drawer-item-home" title="Trang chủ">
         <span class="drawer-nav-icon">
           <svg class="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -179,7 +200,7 @@
         </span>
         <span class="drawer-nav-text">TRANG CHỦ</span>
       </button>
-      <button type="button" class="drawer-nav-item" id="drawer-item-perf">
+      <button type="button" class="drawer-nav-item" id="drawer-item-perf" title="Hiệu năng">
         <span class="drawer-nav-icon">
           <svg class="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2.2">
@@ -190,7 +211,7 @@
         </span>
         <span class="drawer-nav-text">HIỆU NĂNG</span>
       </button>
-      <button type="button" class="drawer-nav-item" id="drawer-item-font">
+      <button type="button" class="drawer-nav-item" id="drawer-item-font" title="Font tuỳ chỉnh">
         <span class="drawer-nav-icon">
           <svg class="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2.2">
@@ -201,7 +222,7 @@
         </span>
         <span class="drawer-nav-text">FONT TUỲ CHỈNH</span>
       </button>
-      <button type="button" class="drawer-nav-item" id="drawer-item-theme">
+      <button type="button" class="drawer-nav-item" id="drawer-item-theme" title="Giao diện">
         <span class="drawer-nav-icon">
           <svg class="theme-svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2">
@@ -210,7 +231,7 @@
             </path>
           </svg>
         </span>
-        <span class="drawer-nav-text">GIAO DIỆN (THEME)</span>
+        <span class="drawer-nav-text">GIAO DIỆN</span>
       </button>
       <button type="button" class="drawer-nav-item" id="drawer-item-winedll">
         <span class="drawer-nav-icon">
@@ -247,6 +268,14 @@
     </div>
 
   </div>
+
+  <button type="button" id="dangdev-sidebar-toggle" title="Mở rộng menu" aria-label="Mở rộng menu"
+    aria-controls="sidebar-drawer" aria-expanded="false">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="9 6 15 12 9 18"></polyline>
+    </svg>
+  </button>
 
   <!-- ── Cyber Neon Vertical Sidebar ── -->
   <aside id="cyber-sidebar" class="cyber-only">

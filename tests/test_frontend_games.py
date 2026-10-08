@@ -107,6 +107,46 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn("body.theme-dangdev #modern-font-view", css)
         self.assertIn("body.theme-dangdev #theme-page .theme-page-container", css)
 
+    def test_dangdev_sidebar_uses_one_persistent_set_of_icons(self):
+        app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
+        css = (ROOT / "frontend/themes/wuwa-dangdev/theme.css").read_text(encoding="utf-8")
+        html = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
+
+        self.assertNotIn("drawer-morph-clone", app)
+        self.assertIn('sidebarDrawer.inert = !open && !persistentDrawer', app)
+        self.assertIn('body.theme-dangdev #sidebar-dock { display: none !important; }', css)
+        self.assertIn("body.theme-dangdev #sidebar-drawer.open", css)
+        self.assertIn('id="dangdev-sidebar-toggle"', html)
+        self.assertIn('body.theme-dangdev #dangdev-sidebar-toggle', css)
+        self.assertIn('body.theme-dangdev #sidebar-drawer:not(.open) .drawer-header', css)
+        self.assertIn('body.theme-dangdev #sidebar-drawer:not(.open) .drawer-nav-item', css)
+        self.assertIn('body.theme-dangdev #sidebar-drawer:not(.open) .drawer-music-ctrl', css)
+        self.assertIn('margin-top: max(8px, calc((100vh - 410px) / 2))', css)
+
+    def test_modern_sidebar_morphs_without_wine_button(self):
+        css = (ROOT / "frontend/themes/wuwa-modern/theme.css").read_text(encoding="utf-8")
+        app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
+
+        self.assertIn('body.theme-modern #sidebar-dock { display: none !important; }', css)
+        self.assertIn('body.theme-modern #sidebar-drawer.open', css)
+        self.assertIn('body.theme-modern #drawer-item-winedll', css)
+        self.assertIn('body.theme-modern .drawer-vol-label { display: none; }', css)
+        self.assertIn('currentThemeId === "modern"', app)
+
+    def test_game_switcher_shows_each_game_icon(self):
+        html = (ROOT / "frontend/index.html").read_text(encoding="utf-8")
+        app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
+        style = (ROOT / "frontend/style.css").read_text(encoding="utf-8")
+
+        self.assertIn('id="game-switch-trigger"', html)
+        self.assertIn('id="game-switch-menu"', html)
+        self.assertIn('src="assets/icon.png"', html)
+        self.assertIn('src="assets/NTE.png"', html)
+        self.assertIn('gameSwitchIcon.src = nte ? "assets/NTE.png" : "assets/icon.png"', app)
+        self.assertIn('#game-switch-menu[hidden]', style)
+        self.assertIn('body.theme-cyber #game-switch-trigger', style)
+        self.assertNotIn('game-switch-eyebrow', html)
+
     def test_theme_polish_and_nte_launcher_controls(self):
         app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
         style = (ROOT / "frontend/style.css").read_text(encoding="utf-8")
@@ -115,7 +155,10 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn("body.theme-dangdev #drawer-item-winedll", dangdev)
         self.assertIn("body.theme-dangdev .drawer-vol-label", dangdev)
         self.assertIn("drop-shadow(0 0 10px", dangdev)
-        self.assertIn("translateX(calc(-100% - 32px))", dangdev)
+        self.assertIn("transition: width .36s", dangdev)
+        self.assertIn("body.theme-dangdev #sidebar-drawer.open", dangdev)
+        self.assertNotIn("mask: url(\"assets/icons.png\")", dangdev)
+        self.assertIn('sidebarDock.inert = open || persistentDrawer', app)
         self.assertIn("appearance: none", style)
         self.assertNotIn('body[data-game="nte"] #ctx-update-launcher', style)
         self.assertNotIn('if (activeGameId !== "wuwa") return;', app[app.index("function openLauncherModal"):app.index("function closeLauncherModal")])
@@ -138,9 +181,9 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn(".ctx-group-title", style)
         self.assertIn("const menuWidth = ctxMenu.offsetWidth || 280", app)
         self.assertIn("const menuHeight = ctxMenu.offsetHeight", app)
-        self.assertIn("body.theme-dangdev .dock-btn.tab-btn.active", dangdev)
+        self.assertIn("body.theme-dangdev .drawer-nav-item.active", dangdev)
         self.assertIn("body.theme-dangdev .launcher-tag.steam", dangdev)
-        self.assertIn("body.theme-dangdev .dock-btn:focus-visible", dangdev)
+        self.assertIn("body.theme-dangdev .drawer-collapse-btn", dangdev)
         quick_menu = html[html.index('id="ctx-menu"'):html.index("</div>\n\n  </div>", html.index('id="ctx-menu"'))]
         self.assertEqual(quick_menu.count('class="ctx-icon"'), 8)
         self.assertEqual(quick_menu.count("<svg"), 8)

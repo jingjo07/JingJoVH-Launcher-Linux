@@ -219,8 +219,10 @@ if (typeof window !== "undefined" && window.LAUNCHER_VERSION) {
 }
 
 async function loadVersion() {
+  const requestedGame = activeGameId;
   try {
     const info = await ipc("get_version");
+    if (requestedGame !== activeGameId || (info?.game && info.game !== activeGameId)) return;
     if (info && info.version) {
       serverInfo = info;
       const vText = `v${info.version}`;
@@ -266,6 +268,7 @@ async function loadVersion() {
       updateVhVersionUI();
     }
   } catch (e) {
+    if (requestedGame !== activeGameId) return;
     console.error("[loadVersion error]", e);
     const retryMsg = `<span style="color: #ff4d6d;">Không thể tải thông tin phiên bản.</span> &nbsp;<a href="javascript:void(0)" onclick="loadVersion()" style="color: var(--cyan, var(--theme-accent, #ff1a53)); text-decoration: underline; font-size: 11px;">Thử lại ⟳</a>`;
     const newsContent = document.getElementById("news-content");
@@ -285,6 +288,18 @@ let isDx11Enabled = true;
 let isCSharpEnvEnabled = true;
 let activeGameId = "wuwa";
 const gameSelect = document.getElementById("game-select");
+const gameSwitchTrigger = document.getElementById("game-switch-trigger");
+const gameSwitchMenu = document.getElementById("game-switch-menu");
+const gameSwitchIcon = document.getElementById("game-switch-icon");
+const gameSwitchName = document.getElementById("game-switch-name");
+const gameSwitchOptions = document.querySelectorAll(".game-switch-option");
+
+function setGameSwitchOpen(open) {
+  if (!gameSwitchMenu || !gameSwitchTrigger) return;
+  gameSwitchMenu.hidden = !open;
+  gameSwitchTrigger.setAttribute("aria-expanded", String(open));
+  gameSwitchTrigger.parentElement.classList.toggle("open", open);
+}
 
 function updateLaunchOptionsUI() {
   const dx11Modern = document.getElementById("toggle-dx11-modern");
@@ -795,20 +810,36 @@ const drawerItemFont = document.getElementById("drawer-item-font");
 const drawerItemTheme = document.getElementById("drawer-item-theme");
 
 const sidebarDrawer = document.getElementById("sidebar-drawer");
+const sidebarDock = document.getElementById("sidebar-dock");
 const dockExpandBtn = document.getElementById("dock-expand-btn");
 const drawerCollapseBtn = document.getElementById("drawer-collapse-btn");
+const dangdevSidebarToggle = document.getElementById("dangdev-sidebar-toggle");
 const modernDrawerBackdrop = document.getElementById("modern-drawer-backdrop");
 
 function setModernDrawerOpen(open, moveFocus = true) {
   if (!sidebarDrawer) return;
+  const persistentDrawer = currentThemeId === "dangdev" || currentThemeId === "modern";
+  const restoreFocus = !open && sidebarDrawer.contains(document.activeElement);
   sidebarDrawer.classList.toggle("open", open);
   document.body.classList.toggle("modern-drawer-open", open);
-  sidebarDrawer.setAttribute("aria-hidden", String(!open));
-  sidebarDrawer.inert = !open;
+  sidebarDrawer.setAttribute("aria-hidden", String(!open && !persistentDrawer));
+  sidebarDrawer.inert = !open && !persistentDrawer;
+  if (sidebarDock) sidebarDock.inert = open || persistentDrawer;
   if (modernDrawerBackdrop) modernDrawerBackdrop.classList.toggle("open", open);
   if (dockExpandBtn) dockExpandBtn.setAttribute("aria-expanded", String(open));
-  if (moveFocus && open && drawerCollapseBtn) drawerCollapseBtn.focus();
-  if (moveFocus && !open && sidebarDrawer.contains(document.activeElement) && dockExpandBtn) dockExpandBtn.focus();
+  if (drawerCollapseBtn) {
+    drawerCollapseBtn.setAttribute("aria-expanded", String(open));
+    drawerCollapseBtn.title = persistentDrawer && !open ? "Mở rộng menu" : "Thu gọn";
+  }
+  if (dangdevSidebarToggle) {
+    const label = open ? "Thu gọn menu" : "Mở rộng menu";
+    dangdevSidebarToggle.setAttribute("aria-expanded", String(open));
+    dangdevSidebarToggle.setAttribute("aria-label", label);
+    dangdevSidebarToggle.title = label;
+  }
+  if (moveFocus && currentThemeId === "dangdev" && dangdevSidebarToggle) dangdevSidebarToggle.focus();
+  if (moveFocus && (open || currentThemeId === "modern") && currentThemeId !== "dangdev" && drawerCollapseBtn) drawerCollapseBtn.focus();
+  if (moveFocus && restoreFocus && !persistentDrawer && dockExpandBtn) dockExpandBtn.focus();
 }
 
 const bottomLayer = document.getElementById("bottom-layer");
@@ -926,7 +957,14 @@ if (dockExpandBtn) {
 if (drawerCollapseBtn) {
   drawerCollapseBtn.onclick = (e) => {
     e.stopPropagation();
-    setModernDrawerOpen(false);
+    setModernDrawerOpen((currentThemeId === "dangdev" || currentThemeId === "modern") && !sidebarDrawer.classList.contains("open"));
+  };
+}
+
+if (dangdevSidebarToggle) {
+  dangdevSidebarToggle.onclick = (e) => {
+    e.stopPropagation();
+    setModernDrawerOpen(!sidebarDrawer.classList.contains("open"));
   };
 }
 
@@ -1954,6 +1992,10 @@ function applyGameUI(gameId) {
   if (gameSelect) gameSelect.value = activeGameId;
 
   const nte = activeGameId === "nte";
+  if (gameSwitchIcon) gameSwitchIcon.src = nte ? "assets/NTE.png" : "assets/icon.png";
+  if (gameSwitchName) gameSwitchName.textContent = nte ? "Neverness to Everness" : "Wuthering Waves";
+  if (gameSwitchTrigger) gameSwitchTrigger.title = nte ? "Neverness to Everness" : "Wuthering Waves";
+  gameSwitchOptions.forEach(option => option.setAttribute("aria-current", String(option.dataset.game === activeGameId)));
   const cyberLogo = document.querySelector(".cyber-logo-img");
   if (cyberLogo) {
     cyberLogo.src = nte ? "assets/NTE_cor.png" : "assets/icon_cor.png";
@@ -2009,6 +2051,8 @@ async function selectGame(gameId) {
   }
   const previous = activeGameId;
   if (gameSelect) gameSelect.disabled = true;
+  if (gameSwitchTrigger) gameSwitchTrigger.disabled = true;
+  setGameSwitchOpen(false);
   try {
     await ipc("set_active_game", { game: gameId });
     applyGameUI(gameId);
@@ -2019,10 +2063,24 @@ async function selectGame(gameId) {
     toast(`Không thể đổi game: ${e.message}`, "error");
   } finally {
     if (gameSelect) gameSelect.disabled = false;
+    if (gameSwitchTrigger) gameSwitchTrigger.disabled = false;
   }
 }
 
 if (gameSelect) gameSelect.addEventListener("change", () => selectGame(gameSelect.value));
+if (gameSwitchTrigger) gameSwitchTrigger.onclick = () => setGameSwitchOpen(gameSwitchMenu.hidden);
+gameSwitchOptions.forEach(option => {
+  option.onclick = () => {
+    setGameSwitchOpen(false);
+    gameSwitchTrigger.focus();
+    selectGame(option.dataset.game);
+  };
+});
+document.addEventListener("click", event => {
+  if (gameSwitchMenu && !gameSwitchMenu.hidden && !gameSwitchTrigger.parentElement.contains(event.target)) {
+    setGameSwitchOpen(false);
+  }
+});
 
 // ── Update Progress System (Inline Bottom Progress Bar) ─────────────────────
 
@@ -2341,7 +2399,10 @@ async function selectLauncher(type) {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    if (menuOpen) toggleMenu(false);
+    if (gameSwitchMenu && !gameSwitchMenu.hidden) {
+      setGameSwitchOpen(false);
+      gameSwitchTrigger.focus();
+    } else if (menuOpen) toggleMenu(false);
     else if (sidebarDrawer && sidebarDrawer.classList.contains("open"))
       setModernDrawerOpen(false);
     else if (launcherModal && launcherModal.classList.contains("visible"))

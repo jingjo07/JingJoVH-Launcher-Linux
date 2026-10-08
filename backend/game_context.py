@@ -33,8 +33,9 @@ def active_game():
 
 
 def get_status():
-    status = active_game().get_status()
-    status.setdefault("game", get_active_game_id())
+    game_id = get_active_game_id()
+    status = GAMES[game_id].get_status()
+    status.setdefault("game", game_id)
     return status
 
 

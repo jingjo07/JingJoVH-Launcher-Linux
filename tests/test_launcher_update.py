@@ -155,6 +155,27 @@ class LauncherUpdateTests(unittest.TestCase):
             with open(target, "rb") as downloaded:
                 self.assertEqual(downloaded.read(), payload)
 
+    def test_failed_replace_preserves_existing_download(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = os.path.join(directory, "download.AppImage")
+            with open(target, "wb") as output:
+                output.write(b"old version")
+
+            def write_new(url, destination, headers, progress):
+                with open(destination, "wb") as output:
+                    output.write(b"new version")
+
+            with mock.patch.object(downloader, "HAS_URLLIB3", False), mock.patch.object(
+                downloader.urllib.request, "urlopen", return_value=Response(b"probe")
+            ), mock.patch.object(downloader, "_download_single_stream", side_effect=write_new), mock.patch.object(
+                downloader.os, "replace", side_effect=OSError("replace failed")
+            ):
+                with self.assertRaisesRegex(OSError, "replace failed"):
+                    downloader.download_file(ASSET_URL, target)
+
+            with open(target, "rb") as current:
+                self.assertEqual(current.read(), b"old version")
+
     def test_dynamic_failure_after_partial_download_does_not_restart_single_stream(self):
         probe = Response(b"x", status=206, headers={"Content-Range": "bytes 0-0/4194304"})
         with tempfile.TemporaryDirectory() as directory:

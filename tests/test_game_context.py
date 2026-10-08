@@ -38,6 +38,40 @@ class GameContextTests(unittest.TestCase):
         self.assertEqual(game.load_config()["theme"], "cyber")
         self.assertEqual(game.load_config()["game_path"], "/games/wuwa")
 
+    def test_separate_config_edits_do_not_overwrite_each_other(self):
+        game.save_config({"theme": "modern", "settings": {"volume": 50}})
+        first = game.load_config()
+        second = game.load_config()
+        first["active_game"] = "nte"
+        self.assertNotIn("active_game", second)
+        first["settings"]["volume"] = 75
+        self.assertEqual(second["settings"]["volume"], 50)
+        second["nte_game_path"] = "/games/nte"
+
+        game.save_config(first)
+        game.save_config(second)
+
+        self.assertEqual(game.load_config(), {
+            "theme": "modern", "settings": {"volume": 75},
+            "active_game": "nte", "nte_game_path": "/games/nte"
+        })
+
+        first["theme"] = "classic"
+        game.save_config(first)
+        self.assertEqual(game.load_config()["nte_game_path"], "/games/nte")
+
+    def test_status_keeps_game_selected_at_request_start(self):
+        from backend import game_context
+
+        game_context.set_active_game("nte")
+
+        def switch_during_status():
+            game_context.set_active_game("wuwa")
+            return {}
+
+        with mock.patch.object(game_context.GAMES["nte"], "get_status", side_effect=switch_during_status):
+            self.assertEqual(game_context.get_status(), {"game": "nte"})
+
     def test_invalid_game_id_is_rejected(self):
         from backend import game_context
 
