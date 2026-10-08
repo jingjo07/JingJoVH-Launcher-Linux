@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 JingJoVH Payload Encryptor & Native Packer
-Packages backend modules into an encrypted binary payload
-and produces libJingJoNative.so native C decryptor.
+- Packages backend modules & launcher.py into an encrypted binary payload
+- Produces libJingJoNative.so native C decryptor
+- Replaces launcher.py with a 15-line native stub
+- Obfuscates frontend/app.js so no plain source code remains
 """
 
 import os
@@ -35,25 +37,28 @@ def main():
 
     app_dir = os.path.abspath(sys.argv[1])
     backend_dir = os.path.join(app_dir, "backend")
+    launcher_file = os.path.join(app_dir, "launcher.py")
 
     if not os.path.isdir(backend_dir):
         print(f"[!] Error: Missing backend directory in {app_dir}")
         sys.exit(1)
 
+    # 1. Biên dịch native C shared library
     script_dir = os.path.dirname(os.path.abspath(__file__))
     native_c = os.path.join(script_dir, "native.c")
     out_lib_dir = os.path.join(app_dir, "usr", "lib")
     os.makedirs(out_lib_dir, exist_ok=True)
     out_so = os.path.join(out_lib_dir, "libJingJoNative.so")
 
-    print(f"[*] Biên dịch native library C: {out_so}...")
+    print(f"[*] [1/4] Biên dịch native library C: {out_so}...")
     subprocess.check_call([
         "gcc", "-O3", "-fPIC", "-shared", "-s",
         "-fvisibility=hidden",
         native_c, "-o", out_so
     ])
 
-    print("[*] Đóng gói các module Python backend...")
+    # 2. Đóng gói các module Python backend + launcher.py
+    print("[*] [2/4] Đóng gói và mã hóa backend & launcher.py...")
     modules = {}
     for root, _, files in os.walk(backend_dir):
         for f in files:
@@ -64,7 +69,11 @@ def main():
                 with open(full_path, "r", encoding="utf-8") as sf:
                     modules[mod_name] = sf.read()
 
-    print(f"[*] Thu thập {len(modules)} module backend.")
+    if os.path.isfile(launcher_file):
+        with open(launcher_file, "r", encoding="utf-8") as lf:
+            modules["__main_launcher__"] = lf.read()
+
+    print(f"[*] Thu thập {len(modules)} module ({len(modules) - 1} backend + launcher.py).")
 
     payload_json = json.dumps(modules).encode("utf-8")
     compressed = zlib.compress(payload_json, 9)
@@ -76,12 +85,11 @@ def main():
 
     print(f"[*] Ghi file nhị phân mã hóa: {out_dat} ({len(encrypted) // 1024} KB).")
 
-    # Xóa toàn bộ file .py trong thư mục backend của AppDir
+    # Xóa toàn bộ file .py trong backend của AppDir
     shutil.rmtree(backend_dir)
     os.makedirs(backend_dir, exist_ok=True)
-    print("[*] Đã xóa toàn bộ file mã nguồn .py trong thư mục backend.")
 
-    # Tạo backend/__init__.py làm native loader duy nhất
+    # backend/__init__.py làm native loader
     loader_init_code = '''# JingJoVH Native Package Loader
 import os, sys, zlib, json, ctypes
 from importlib.machinery import ModuleSpec
@@ -128,13 +136,56 @@ class _SubmoduleLoader:
 
 sys.meta_path.insert(0, _SubmoduleLoader())
 '''
-
-    init_file = os.path.join(backend_dir, "__init__.py")
-    with open(init_file, "w", encoding="utf-8") as f:
+    with open(os.path.join(backend_dir, "__init__.py"), "w", encoding="utf-8") as f:
         f.write(loader_init_code)
 
-    print("[*] Đã cấu hình backend/__init__.py native loader.")
-    print("[+] Hoàn tất mã hóa toàn bộ backend!")
+    # 3. Thay thế launcher.py bằng native bootstrap stub
+    print("[*] [3/4] Thay thế launcher.py bằng native bootstrap stub...")
+    launcher_stub = '''#!/usr/bin/env python3
+"""JingJoVH Launcher — Native Bootstrapper"""
+import os, sys
+import backend
+
+appdir = os.environ.get("APPDIR") or os.path.dirname(os.path.abspath(__file__))
+launcher_code = backend._modules.get("__main_launcher__", "")
+if not launcher_code:
+    sys.exit("[JingJoVH] Failed to load native launcher payload.")
+
+launcher_globals = {
+    "__name__": "__main__",
+    "__file__": os.path.join(appdir, "launcher.py"),
+    "__doc__": None,
+}
+compiled = compile(launcher_code, "<native:launcher>", "exec")
+exec(compiled, launcher_globals)
+'''
+    with open(launcher_file, "w", encoding="utf-8") as lf:
+        lf.write(launcher_stub)
+    os.chmod(launcher_file, 0o755)
+
+    # Xóa wuwa_launcher.sh nếu còn sót trong AppDir
+    sh_file = os.path.join(app_dir, "wuwa_launcher.sh")
+    if os.path.isfile(sh_file):
+        os.unlink(sh_file)
+
+    # 4. Làm rối mã nguồn frontend/app.js
+    app_js = os.path.join(app_dir, "frontend", "app.js")
+    if os.path.isfile(app_js):
+        print("[*] [4/4] Đang làm rối (obfuscate) frontend/app.js...")
+        try:
+            subprocess.run([
+                "npx", "--yes", "javascript-obfuscator",
+                app_js, "--output", app_js,
+                "--compact", "true",
+                "--string-array", "true",
+                "--string-array-encoding", "base64",
+                "--string-array-threshold", "0.75"
+            ], check=True, capture_output=True)
+            print("[+] Đã làm rối hoàn toàn frontend/app.js!")
+        except Exception as e:
+            print(f"[!] Cảnh báo: Lỗi khi chạy javascript-obfuscator: {e}")
+
+    print("[+] Hoàn tất đóng gói bảo vệ toàn diện AppDir!")
 
 
 if __name__ == "__main__":

@@ -32,7 +32,6 @@ echo "window.LAUNCHER_VERSION = \"$LAUNCHER_VERSION\";" >> "$SCRIPT_DIR/frontend
 cp -r "$SCRIPT_DIR/backend" "$APP_DIR/"
 cp -r "$SCRIPT_DIR/frontend" "$APP_DIR/"
 cp "$SCRIPT_DIR/launcher.py" "$APP_DIR/"
-cp "$SCRIPT_DIR/wuwa_launcher.sh" "$APP_DIR/"
 
 if [ -d "$SCRIPT_DIR/wuwa-paks" ]; then
     mkdir -p "$APP_DIR/wuwa-paks"
@@ -140,10 +139,12 @@ if command -v python3 &>/dev/null; then
         exec python3 "$APPDIR/launcher.py" "$@"
     fi
 fi
-
-# Nếu thiếu WebKitGTK, chuyển sang wuwa_launcher.sh (YAD/Zenity GUI hoặc CLI fallback)
-echo "[JingJoVH] WebKitGTK không khả dụng, đang khởi động chế độ dự phòng YAD/Zenity..."
-exec bash "$APPDIR/wuwa_launcher.sh" "$@"
+# Thông báo lỗi nếu thiếu WebKitGTK
+echo "[JingJoVH] Lỗi: Cần cài đặt WebKitGTK (gir1.2-webkit2-4.1 hoặc gir1.2-webkit2-4.0) để khởi chạy launcher." >&2
+if command -v zenity &>/dev/null; then
+    zenity --error --title="JingJoVH Launcher" --text="Không tìm thấy WebKitGTK trên hệ thống!\n\nVui lòng cài đặt gói:\n- Ubuntu/Debian/Mint: sudo apt install gir1.2-webkit2-4.1\n- Arch/Manjaro: sudo pacman -S webkit2gtk-4.1\n- Fedora: sudo dnf install webkit2gtk4.1" 2>/dev/null || true
+fi
+exit 1
 EOF
 chmod +x "$APP_DIR/AppRun"
 
