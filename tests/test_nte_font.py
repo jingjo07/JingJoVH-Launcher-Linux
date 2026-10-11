@@ -82,6 +82,9 @@ class NteFontTests(unittest.TestCase):
         from backend import nte, nte_font
 
         target, original_entries = self._write_translation_pak()
+        marker = target + ".wuwavh_sha256"
+        with open(marker, "w", encoding="ascii") as output:
+            output.write(wuwa_game.sha256_file(target))
         font = os.path.join(self.temp.name, "My Font.ttf")
         font_data = b"\x00\x01\x00\x00" + b"valid-font-data" * 2
         with open(font, "wb") as output:
@@ -114,6 +117,8 @@ class NteFontTests(unittest.TestCase):
         self.assertEqual(result["font_name"], "My Font")
         self.assertEqual(result["pak_file"], nte_font.TRANSLATION_PAK_NAME)
         self.assertEqual(status["active_font"], "custom")
+        with open(marker, encoding="ascii") as source:
+            self.assertEqual(source.read(), wuwa_game.sha256_file(target))
         self.assertEqual(base64.b64decode(preview["data"]), font_data)
         self.assertEqual(preview["mime"], "font/ttf")
 
@@ -137,6 +142,56 @@ class NteFontTests(unittest.TestCase):
             self.assertEqual(json.load(source), original_entries)
         self.assertEqual(status["active_font"], "default")
         self.assertEqual(result["font_name"], "MiSans (M\u1eb7c \u0111\u1ecbnh NTE)")
+
+    def test_translation_update_reapplies_font_and_restores_new_translation(self):
+        from backend import nte, nte_font
+
+        translation, original_entries = self._write_translation_pak()
+        font = os.path.join(self.temp.name, "My Font.ttf")
+        with open(font, "wb") as output:
+            output.write(b"\x00\x01\x00\x00" + b"custom-font-data")
+
+        with mock.patch.object(nte, "detect_game_path", return_value=self.root), mock.patch.object(
+            nte, "is_game_running", return_value=False
+        ), mock.patch.object(nte_font, "_find_repak", return_value=self.repak):
+            nte_font.install_custom_font(font)
+            updated_entries = dict(original_entries)
+            updated_entries[nte_font.LOCRES_ASSET_PATH] = b"new-translation".hex()
+            with open(translation, "w", encoding="utf-8") as output:
+                json.dump(updated_entries, output)
+
+            nte_font.refresh_after_translation_update()
+            self.assertEqual(nte_font.get_font_status()["active_font"], "custom")
+            with open(translation, encoding="utf-8") as source:
+                self.assertEqual(json.load(source)[nte_font.LOCRES_ASSET_PATH], b"new-translation".hex())
+            nte_font.install_default_font()
+
+        with open(translation, encoding="utf-8") as source:
+            self.assertEqual(json.load(source), updated_entries)
+
+    def test_translation_update_keeps_new_translation_if_font_repack_fails(self):
+        from backend import nte, nte_font
+
+        translation, original_entries = self._write_translation_pak()
+        font = os.path.join(self.temp.name, "My Font.ttf")
+        with open(font, "wb") as output:
+            output.write(b"\x00\x01\x00\x00" + b"custom-font-data")
+
+        with mock.patch.object(nte, "detect_game_path", return_value=self.root), mock.patch.object(
+            nte, "is_game_running", return_value=False
+        ), mock.patch.object(nte_font, "_find_repak", return_value=self.repak):
+            nte_font.install_custom_font(font)
+            updated_entries = dict(original_entries)
+            updated_entries[nte_font.LOCRES_ASSET_PATH] = b"new-translation".hex()
+            with open(translation, "w", encoding="utf-8") as output:
+                json.dump(updated_entries, output)
+            with mock.patch.object(nte_font, "_create_font_override_pak", side_effect=RuntimeError("repak failed")):
+                self.assertFalse(nte_font.refresh_after_translation_update())
+            self.assertEqual(nte_font.get_font_status()["active_font"], "default")
+            self.assertFalse(os.path.exists(nte_font._backup_path()))
+
+        with open(translation, encoding="utf-8") as source:
+            self.assertEqual(json.load(source), updated_entries)
 
     def test_otf_is_converted_to_truetype_before_patching(self):
         from backend import nte, nte_font

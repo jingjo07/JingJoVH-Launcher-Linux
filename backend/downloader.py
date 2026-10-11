@@ -1,5 +1,5 @@
 """Pak and resource downloader module for JingJoVH Launcher."""
-import urllib.request, urllib.error, urllib.parse, json, os, hashlib, hmac, time, base64, secrets, ssl
+import urllib.request, urllib.error, urllib.parse, json, os, hashlib, hmac, time, base64, secrets
 
 # ── Encrypted Remote Endpoints (Obfuscated) ──────────────────────────────────
 _SEC_KEY = bytes([0x6D, 0x5F, 0x82, 0x1A, 0x93, 0xE7, 0x4C, 0x2B, 0xD0, 0x3F, 0x7E, 0x51, 0x88, 0xFA, 0x09, 0xB6])
@@ -91,7 +91,7 @@ def sha256_file(path: str) -> str:
     return h.hexdigest()
 
 def get_version_info() -> dict:
-    """Fetch the latest version info with multiple mirrors, SSL fallbacks, and local caching."""
+    """Fetch the latest version info with verified mirrors and local caching."""
     cache_file = os.path.join(os.path.expanduser("~/.config/wuwavh"), "cached_version.json")
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -99,23 +99,21 @@ def get_version_info() -> dict:
     }
 
     for url in VERSION_MIRRORS:
-        for use_ssl_verify in [True, False]:
-            try:
-                req = urllib.request.Request(url, headers=headers)
-                ctx = ssl.create_default_context() if use_ssl_verify else ssl._create_unverified_context()
-                with urllib.request.urlopen(req, timeout=12, context=ctx) as r:
-                    raw = r.read().decode("utf-8")
-                    data = json.loads(raw)
-                    if data and "version" in data:
-                        try:
-                            os.makedirs(os.path.dirname(cache_file), exist_ok=True)
-                            with open(cache_file, "w", encoding="utf-8") as cf:
-                                json.dump(data, cf, ensure_ascii=False)
-                        except Exception:
-                            pass
-                        return data
-            except Exception:
-                continue
+        try:
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=12) as r:
+                raw = r.read().decode("utf-8")
+                data = json.loads(raw)
+                if data and "version" in data:
+                    try:
+                        os.makedirs(os.path.dirname(cache_file), exist_ok=True)
+                        with open(cache_file, "w", encoding="utf-8") as cf:
+                            json.dump(data, cf, ensure_ascii=False)
+                    except Exception:
+                        pass
+                    return data
+        except Exception:
+            continue
 
     # Fallback 1: Local cache file
     if os.path.isfile(cache_file):

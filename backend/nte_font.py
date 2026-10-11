@@ -421,6 +421,8 @@ def _create_font_override_pak(font_data: bytes):
             capture_output=True,
         )
         shutil.move(packed, translation_pak)
+        from backend import nte_downloader
+        nte_downloader._refresh_owned_hash(translation_pak)
 
     legacy_override = os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME)
     if os.path.isfile(legacy_override):
@@ -523,6 +525,35 @@ def install_font_from_pak(pak_path: str) -> dict:
     return {"ok": True, "font_name": name, "pak_file": TRANSLATION_PAK_NAME}
 
 
+def refresh_after_translation_update() -> bool:
+    """Rebase the selected font onto the newly downloaded translation PAK."""
+    backup = _backup_path()
+    if not os.path.isfile(backup):
+        return True
+    translation_pak = os.path.join(_pak_dir(), TRANSLATION_PAK_NAME)
+    temporary = backup + ".tmp"
+    shutil.copyfile(translation_pak, temporary)
+    os.replace(temporary, backup)
+
+    cfg = wuwa_game.load_config()
+    if not cfg.get("nte_custom_font_name"):
+        return True
+    try:
+        with open(_cache_path(), "rb") as source:
+            font_data = source.read(_MAX_FONT_SIZE + 1)
+        if not 1 <= len(font_data) <= _MAX_FONT_SIZE:
+            raise ValueError("Font NTE đã lưu không hợp lệ")
+        _create_font_override_pak(font_data)
+        return True
+    except Exception:
+        wuwa_game._copy_to_game(backup, translation_pak)
+        os.unlink(backup)
+        cfg.pop("nte_custom_font_name", None)
+        cfg.pop("nte_custom_font_mime", None)
+        wuwa_game.save_config(cfg)
+        return False
+
+
 def install_default_font() -> dict:
     _require_stopped()
     pak_dir = _pak_dir()
@@ -530,6 +561,8 @@ def install_default_font() -> dict:
     translation_pak = os.path.join(pak_dir, TRANSLATION_PAK_NAME)
     if os.path.isfile(backup):
         shutil.copyfile(backup, translation_pak)
+        from backend import nte_downloader
+        nte_downloader._refresh_owned_hash(translation_pak)
     legacy = os.path.join(pak_dir, CUSTOM_FONT_PAK_NAME)
     if os.path.isfile(legacy):
         try:

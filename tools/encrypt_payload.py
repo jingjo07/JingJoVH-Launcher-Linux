@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-JingJoVH Payload Encryptor & Native Packer
-- Packages backend modules & launcher.py into an encrypted binary payload
-- Produces libJingJoNative.so native C decryptor
+JingJoVH Payload Obfuscator & Native Packer
+- Packages backend modules & launcher.py into an XOR-obfuscated payload
+- Produces libJingJoNative.so native C decoder
 - Replaces launcher.py with a 15-line native stub
 - Obfuscates frontend/app.js so no plain source code remains
+
+This is source obfuscation, not a security boundary: the offline client contains
+everything needed to recover its code.
 """
 
 import os
@@ -13,6 +16,7 @@ import zlib
 import json
 import shutil
 import subprocess
+from pathlib import Path
 
 MASTER_KEY = bytes([
     0x57, 0x75, 0x57, 0x61, 0x5F, 0x4E, 0x54, 0x45,
@@ -30,18 +34,25 @@ def encrypt(data: bytes) -> bytes:
     return bytes(out)
 
 
+def _checked_app_dir(raw_path: str) -> Path:
+    app_dir = Path(raw_path).resolve()
+    build_dir = Path(__file__).resolve().parent.parent / "build"
+    if not app_dir.is_relative_to(build_dir) or app_dir.suffix != ".AppDir":
+        raise ValueError(f"Refusing to package outside build/*.AppDir: {app_dir}")
+    return app_dir
+
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: encrypt_payload.py <APP_DIR>")
         sys.exit(1)
 
-    app_dir = os.path.abspath(sys.argv[1])
+    app_dir = str(_checked_app_dir(sys.argv[1]))
     backend_dir = os.path.join(app_dir, "backend")
     launcher_file = os.path.join(app_dir, "launcher.py")
 
-    if not os.path.isdir(backend_dir):
-        print(f"[!] Error: Missing backend directory in {app_dir}")
-        sys.exit(1)
+    if not os.path.isdir(backend_dir) or not os.path.isfile(launcher_file):
+        sys.exit(f"[!] Error: Missing backend or launcher.py in {app_dir}")
 
     # 1. Biên dịch native C shared library
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -111,8 +122,10 @@ if os.path.isfile(_LIB_SO) and os.path.isfile(_DAT_PATH):
         _native.NativeDecrypt(_in_buf, len(_enc), _out_buf)
         _dec = zlib.decompress(bytes(_out_buf))
         del _in_buf, _out_buf, _enc
-        _modules = json.loads(_dec.decode("utf-8"))
-        del _dec
+        _source = json.loads(_dec.decode("utf-8"))
+        _modules = {name: compile(source, f"<native:{name}>", "exec")
+                    for name, source in _source.items()}
+        del _dec, _source
     except Exception as _e:
         sys.stderr.write(f"[JingJoVH] Native decrypt error: {_e}\\n")
 
@@ -129,10 +142,8 @@ class _SubmoduleLoader:
 
     def exec_module(self, module):
         sub = module.__name__[8:]
-        code_str = _modules.get(sub, "")
         module.__file__ = os.path.join(_APPDIR, "backend", sub + ".py")
-        compiled = compile(code_str, f"<native:{sub}>", "exec")
-        exec(compiled, module.__dict__)
+        exec(_modules[sub], module.__dict__)
 
 sys.meta_path.insert(0, _SubmoduleLoader())
 '''
@@ -147,8 +158,8 @@ import os, sys
 import backend
 
 appdir = os.environ.get("APPDIR") or os.path.dirname(os.path.abspath(__file__))
-launcher_code = backend._modules.get("__main_launcher__", "")
-if not launcher_code:
+launcher_code = backend._modules.get("__main_launcher__")
+if launcher_code is None:
     sys.exit("[JingJoVH] Failed to load native launcher payload.")
 
 launcher_globals = {
@@ -156,8 +167,7 @@ launcher_globals = {
     "__file__": os.path.join(appdir, "launcher.py"),
     "__doc__": None,
 }
-compiled = compile(launcher_code, "<native:launcher>", "exec")
-exec(compiled, launcher_globals)
+exec(launcher_code, launcher_globals)
 '''
     with open(launcher_file, "w", encoding="utf-8") as lf:
         lf.write(launcher_stub)
@@ -172,20 +182,17 @@ exec(compiled, launcher_globals)
     app_js = os.path.join(app_dir, "frontend", "app.js")
     if os.path.isfile(app_js):
         print("[*] [4/4] Đang làm rối (obfuscate) frontend/app.js...")
-        try:
-            subprocess.run([
-                "npx", "--yes", "javascript-obfuscator",
-                app_js, "--output", app_js,
-                "--compact", "true",
-                "--string-array", "true",
-                "--string-array-encoding", "base64",
-                "--string-array-threshold", "0.75"
-            ], check=True, capture_output=True)
-            print("[+] Đã làm rối hoàn toàn frontend/app.js!")
-        except Exception as e:
-            print(f"[!] Cảnh báo: Lỗi khi chạy javascript-obfuscator: {e}")
+        subprocess.run([
+            "npx", "--yes", "--package=javascript-obfuscator@4.1.1",
+            "javascript-obfuscator", app_js, "--output", app_js,
+            "--compact", "true",
+            "--string-array", "true",
+            "--string-array-encoding", "base64",
+            "--string-array-threshold", "0.75"
+        ], check=True)
+        print("[+] Đã làm rối frontend/app.js!")
 
-    print("[+] Hoàn tất đóng gói bảo vệ toàn diện AppDir!")
+    print("[+] Hoàn tất đóng gói và làm rối AppDir!")
 
 
 if __name__ == "__main__":

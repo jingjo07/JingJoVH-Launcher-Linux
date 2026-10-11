@@ -270,7 +270,7 @@ async function loadVersion() {
   } catch (e) {
     if (requestedGame !== activeGameId) return;
     console.error("[loadVersion error]", e);
-    const retryMsg = `<span style="color: #ff4d6d;">Không thể tải thông tin phiên bản.</span> &nbsp;<a href="javascript:void(0)" onclick="loadVersion()" style="color: var(--cyan, var(--theme-accent, #ff1a53)); text-decoration: underline; font-size: 11px;">Thử lại ⟳</a>`;
+    const retryMsg = `<span style="color: var(--red-danger);">Không thể tải thông tin phiên bản.</span> &nbsp;<a href="javascript:void(0)" onclick="loadVersion()" style="color: var(--theme-accent); text-decoration: underline; font-size: 11px;">Thử lại ⟳</a>`;
     const newsContent = document.getElementById("news-content");
     if (newsContent) newsContent.innerHTML = retryMsg;
     const newsContentModern = document.getElementById("news-content-modern");
@@ -517,25 +517,50 @@ function updateMusicIcons(playing) {
 let currentVid = vidA;
 let nextVid = vidB;
 let isTransitioning = false;
+let videoTransitionTimer = null;
+let mediaGeneration = 0;
 let isVideoPausedByFocusOrGame = false;
 let isMediaPausedByUser = false;
 let mediaInitialized = false;
 
 function getMediaSources(gameId) {
   const isNte = gameId === "nte";
+  const video = isNte ? "nte-bg-video.mp4" : "bg-video-720p.mp4";
+  const audio = isNte ? "nte-bgm.mp3" : "bgm.mp3";
+  const bundled = window.BUNDLED_ASSETS_DIR || "assets";
   return {
-    videoPrimary: isNte ? `${window.ASSETS_DIR}/nte-bg-video.mp4` : `${window.ASSETS_DIR}/bg-video-720p.mp4`,
-    videoFallback: "assets/bg-video-720p.mp4",
-    audioPrimary: isNte ? `${window.ASSETS_DIR}/nte-bgm.mp3` : `${window.ASSETS_DIR}/bgm.mp3`,
-    audioFallback: "assets/bgm.mp3",
+    videoPrimary: `${window.ASSETS_DIR}/${video}`,
+    videoFallback: `${bundled}/${video}`,
+    audioPrimary: `${window.ASSETS_DIR}/${audio}`,
+    audioFallback: `${bundled}/${audio}`,
   };
 }
 
-function switchMediaForGame(gameId) {
+function switchMediaForGame(gameId, resume = false) {
   const { videoPrimary, videoFallback, audioPrimary, audioFallback } = getMediaSources(gameId);
+  if (resume) isMediaPausedByUser = false;
+
+  mediaGeneration += 1;
+  if (videoTransitionTimer) clearTimeout(videoTransitionTimer);
+  videoTransitionTimer = null;
+  isTransitioning = false;
+  if (vidA) {
+    vidA.pause();
+    vidA.classList.add("active");
+    vidA.classList.remove("fade-in-top");
+  }
+  if (vidB) {
+    vidB.pause();
+    vidB.classList.remove("active", "fade-in-top");
+  }
+  currentVid = vidA;
+  nextVid = vidB;
 
   function setupVideo(v) {
     if (!v) return;
+    // NTE has its own video; never flash the WuWa poster while it loads.
+    if (gameId === "nte") v.removeAttribute("poster");
+    else v.setAttribute("poster", "assets/bg-poster.webp");
     v.src = videoPrimary;
     v.muted = true;
     v.playsInline = true;
@@ -554,12 +579,12 @@ function switchMediaForGame(gameId) {
 
   setupVideo(vidA);
   setupVideo(vidB);
-  if (vidA && !isVideoPausedByFocusOrGame && !isMediaPausedByUser) {
-    vidA.play().catch(() => {});
+  if (currentVid && !isVideoPausedByFocusOrGame && !isMediaPausedByUser) {
+    currentVid.play().catch(() => {});
   }
 
   if (audio) {
-    const wasPlaying = !audio.paused && !audio.ended;
+    const shouldPlay = resume || (!audio.paused && !audio.ended);
     audio.src = audioPrimary;
     audio.dataset.fallbackTried = "";
     audio.onerror = () => {
@@ -567,13 +592,13 @@ function switchMediaForGame(gameId) {
         audio.dataset.fallbackTried = "1";
         audio.src = audioFallback;
         audio.load();
-        if (wasPlaying && !isMediaPausedByUser) {
+        if (shouldPlay && !isMediaPausedByUser && !isVideoPausedByFocusOrGame) {
           audio.play().then(() => updateMusicIcons(true)).catch(() => updateMusicIcons(false));
         }
       }
     };
     audio.load();
-    if (wasPlaying && !isMediaPausedByUser) {
+    if (shouldPlay && !isMediaPausedByUser && !isVideoPausedByFocusOrGame) {
       audio.play().then(() => updateMusicIcons(true)).catch(() => updateMusicIcons(false));
     }
   }
@@ -591,11 +616,15 @@ function initBgMedia() {
     if (v.duration && v.currentTime >= v.duration - 0.5) {
       isTransitioning = true;
       if (nextVid) {
+        const generation = mediaGeneration;
         nextVid.currentTime = 0;
         nextVid.play().then(() => {
+          if (generation !== mediaGeneration) return;
           // Layer nextVid on TOP and fade in, while current stays beneath
           nextVid.classList.add("fade-in-top");
-          setTimeout(() => {
+          videoTransitionTimer = setTimeout(() => {
+            videoTransitionTimer = null;
+            if (generation !== mediaGeneration) return;
             nextVid.classList.remove("fade-in-top");
             nextVid.classList.add("active");
             
@@ -611,7 +640,7 @@ function initBgMedia() {
             isTransitioning = false;
           }, 420);
         }).catch(() => {
-          isTransitioning = false;
+          if (generation === mediaGeneration) isTransitioning = false;
         });
       } else {
         v.currentTime = 0;
@@ -649,7 +678,12 @@ function initBgMedia() {
 
   // Auto-play audio immediately on launch
   const tryPlay = () => {
+    if (isMediaPausedByUser) return;
     audio.play().then(() => {
+      if (isMediaPausedByUser) {
+        audio.pause();
+        return;
+      }
       updateMusicIcons(true);
     }).catch(() => {
       updateMusicIcons(false);
@@ -706,7 +740,8 @@ function initBgMedia() {
 
   if (audio) {
     audio.addEventListener("play", () => {
-      if (!isMediaPausedByUser) updateMusicIcons(true);
+      if (isMediaPausedByUser) audio.pause();
+      else updateMusicIcons(true);
     });
     audio.addEventListener("pause", () => {
       if (isMediaPausedByUser || (audio && audio.paused)) updateMusicIcons(false);
@@ -888,6 +923,8 @@ function switchTab(tab) {
   if (cyberNavPerf) cyberNavPerf.classList.toggle("active", tab === "perf");
   if (cyberNavFont) cyberNavFont.classList.toggle("active", tab === "font");
   if (cyberNavTheme) cyberNavTheme.classList.toggle("active", tab === "theme");
+  [[cyberNavHome, "home"], [cyberNavPerf, "perf"], [cyberNavFont, "font"], [cyberNavTheme, "theme"]]
+    .forEach(([item, name]) => { if (item) item.setAttribute("aria-current", String(tab === name)); });
 
   // Background blur trigger
   document.body.classList.toggle("tab-perf", tab === "perf");
@@ -991,6 +1028,7 @@ function toggleMenu(open, triggerBtn) {
   menuOpen = (open !== undefined) ? open : !menuOpen;
   ctxMenu.classList.toggle("open", menuOpen);
   if (menuToggleClassic) menuToggleClassic.classList.toggle("active", menuOpen);
+  if (menuToggleClassic) menuToggleClassic.setAttribute("aria-expanded", String(menuOpen));
   if (menuToggleModern) menuToggleModern.classList.toggle("active", menuOpen);
   if (menuToggleModern) menuToggleModern.setAttribute("aria-expanded", String(menuOpen));
   const cyberMenuBtn = document.getElementById("btn-menu-toggle-cyber");
@@ -998,7 +1036,7 @@ function toggleMenu(open, triggerBtn) {
   if (cyberMenuBtn) cyberMenuBtn.setAttribute("aria-expanded", String(menuOpen));
 
   if (menuOpen) {
-    const btn = triggerBtn || (currentThemeId === "classic" ? menuToggleClassic : (currentThemeId === "cyber" ? cyberMenuBtn : menuToggleModern));
+    const btn = triggerBtn || (currentThemeId === "classic" ? menuToggleClassic : (usesNteControls() ? cyberMenuBtn : menuToggleModern));
     if (btn) {
       const rect = btn.getBoundingClientRect();
       let left = rect.left;
@@ -1580,6 +1618,7 @@ bindSlider(perfSliderNpcDist, perfValNpcDist);
 const fontCurrent = document.getElementById("font-current");
 const fontDetail = document.getElementById("font-detail");
 const fontStatusIcon = document.getElementById("font-status-icon");
+const classicFontPreview = document.getElementById("classic-font-preview");
 const fontPickCustomBtn = document.getElementById("font-pick-custom");
 const fontPickPakBtn = document.getElementById("font-pick-pak");
 const fontInstallDefaultBtn = document.getElementById("font-install-default");
@@ -1596,7 +1635,7 @@ let fontPreviewFace = null;
 let fontPreviewRequest = 0;
 
 function clearFontPreview() {
-  for (const el of [fontCurrent, modernFontCurrentVal]) {
+  for (const el of [fontCurrent, modernFontCurrentVal, classicFontPreview]) {
     if (el) el.style.removeProperty("font-family");
   }
   if (fontPreviewFace && document.fonts) document.fonts.delete(fontPreviewFace);
@@ -1613,7 +1652,7 @@ async function applyFontPreview(preview, requestId) {
   if (requestId !== fontPreviewRequest) return;
   document.fonts.add(face);
   fontPreviewFace = face;
-  for (const el of [fontCurrent, modernFontCurrentVal]) {
+  for (const el of [fontCurrent, modernFontCurrentVal, classicFontPreview]) {
     if (el) el.style.setProperty("font-family", `"${family}", "Noto Sans", sans-serif`, "important");
   }
 }
@@ -1654,7 +1693,7 @@ async function updateFontStatus() {
     // Update Classic View
     if (fontCurrent) {
       fontCurrent.textContent = status.active_font === "custom" ? (status.custom_font_name || "Custom Font") : (status.active_font === "default" ? defaultFontName : "Chưa cài font");
-      fontCurrent.className = `font-status-value ${status.active_font}`;
+      fontCurrent.className = `classic-font-current-name font-status-value ${status.active_font}`;
     }
     if (fontDetail) fontDetail.textContent = detail;
     if (fontStatusIcon) fontStatusIcon.textContent = icon;
@@ -1870,6 +1909,10 @@ let currentThemeId = "classic";
 let savedWuwaTheme = "classic";
 let savedNteTheme = "cyber";
 
+function usesNteControls(themeId = currentThemeId) {
+  return themeId === "cyber" || themeId === "hether";
+}
+
 function applyTheme(themeId, save = true) {
   if (themeId === "oriental") themeId = "cyber";
   const isNte = activeGameId === "nte";
@@ -1882,7 +1925,8 @@ function applyTheme(themeId, save = true) {
   const activeId = themeObj ? themeObj.id : themeId;
 
   currentThemeId = activeId;
-  const usesModernLayout = activeId === "modern" || activeId === "cyber" || activeId === "dangdev";
+  const usesModernLayout = activeId === "modern" || usesNteControls(activeId) || activeId === "dangdev";
+  toggleMenu(false);
 
   // 1. Swap theme stylesheet dynamically from themes/ directory
   const linkEl = document.getElementById("theme-stylesheet");
@@ -1891,7 +1935,9 @@ function applyTheme(themeId, save = true) {
   }
 
   // 2. Update body classes & attributes
-  document.body.classList.remove("theme-modern", "theme-classic", "theme-oriental", "theme-cyber", "theme-dangdev");
+  document.body.classList.remove("theme-modern", "theme-classic", "theme-oriental", "theme-cyber", "theme-dangdev", "theme-hether");
+  // Hether shares the complete NTE control set and page styling with Cyber.
+  if (activeId === "hether") document.body.classList.add("theme-cyber");
   document.body.classList.add(`theme-${activeId}`);
   document.body.classList.toggle("theme-modern-layout", usesModernLayout);
   document.body.classList.toggle("theme-classic-layout", !usesModernLayout);
@@ -1985,7 +2031,7 @@ function renderThemeList() {
   });
 }
 
-function applyGameUI(gameId) {
+function applyGameUI(gameId, resumeMedia = false) {
   activeGameId = gameId === "nte" ? "nte" : "wuwa";
   document.body.dataset.game = activeGameId;
   document.title = activeGameId === "nte" ? "JingJoVH - Neverness to Everness" : "JingJoVH - Wuthering Waves";
@@ -2032,7 +2078,7 @@ function applyGameUI(gameId) {
   }
 
   // Switch Media for Game
-  if (mediaInitialized) switchMediaForGame(activeGameId);
+  if (mediaInitialized) switchMediaForGame(activeGameId, resumeMedia);
 
   // Update Play Button
   updatePlayBtn();
@@ -2055,7 +2101,7 @@ async function selectGame(gameId) {
   setGameSwitchOpen(false);
   try {
     await ipc("set_active_game", { game: gameId });
-    applyGameUI(gameId);
+    applyGameUI(gameId, true);
     await Promise.allSettled([loadVersion(), refreshStatus()]);
     toast(`Đã chuyển sang ${gameId === "nte" ? "Neverness to Everness" : "Wuthering Waves"}`, "success");
   } catch (e) {
@@ -2156,7 +2202,9 @@ async function onUpdateDone(d) {
   modUpdateInProgress = false;
   if (modernQuickUpdate) modernQuickUpdate.disabled = false;
   showUpdateProgress(100, "✓ CẬP NHẬT VIỆT HOÁ HOÀN TẤT!");
-  toast("✓ Đã cập nhật bản dịch Việt Hoá mới nhất!", "success");
+  toast(d.font_reapplied === false
+    ? "Đã cập nhật Việt hoá, nhưng không thể áp dụng lại font NTE. Hãy chọn lại font."
+    : "✓ Đã cập nhật bản dịch Việt Hoá mới nhất!", d.font_reapplied === false ? "error" : "success");
   await Promise.allSettled([refreshStatus(), loadVersion()]);
   hideUpdateProgress(2500);
 }
@@ -2187,7 +2235,7 @@ function onUpdateAssetsDone() {
   mediaUpdateInProgress = false;
   showUpdateProgress(100, "✓ CẬP NHẬT MEDIA LAUNCHER HOÀN TẤT!");
   toast("✓ Đã tải video và nhạc nền mới nhất!", "success");
-  if (typeof initBgMedia === "function") initBgMedia();
+  switchMediaForGame(activeGameId);
   hideUpdateProgress(2500);
 }
 
@@ -2285,19 +2333,157 @@ function closeLauncherModal() {
   launcherModal.classList.remove("visible");
 }
 
+// ── Help Modal ─────────────────────────────────────────────────────────────
+const helpTrigger = document.getElementById("help-trigger");
+const helpTour = document.getElementById("help-tour");
+const helpCard = document.getElementById("help-card");
+const helpSpotlight = document.getElementById("help-spotlight");
+const helpShades = helpTour.querySelectorAll(".help-shade");
+const helpBack = document.getElementById("help-back");
+const helpNext = document.getElementById("help-next");
+const helpSteps = [
+  { title: "Chào mừng đến với launcher", description: "Xem nhanh các thao tác chính để cài Việt hoá và chơi game. Hướng dẫn này không tự thay đổi thiết lập của bạn." },
+  { target: "game-switch-trigger", title: "Chọn game", description: "Chọn Wuthering Waves hoặc Neverness to Everness. Launcher lưu thư mục và cấu hình riêng cho từng game." },
+  { target: "menu", title: "Mở tùy chọn nhanh", description: "Menu này có các thao tác cập nhật Việt hoá, cấu hình đường dẫn game và cài WINEDLLOVERRIDES." },
+  { target: "ctx-update", menu: true, title: "Cài hoặc cập nhật Việt hoá", description: "Chọn Cập nhật Việt Hoá để tải và cài bản dịch mới nhất. Hãy chờ thanh tiến trình hoàn tất trước khi chơi." },
+  { target: "ctx-game-paths", menu: true, title: "Cấu hình đường dẫn game", description: "Launcher tự tìm thư mục game. Nếu chưa nhận diện được, chọn Cấu hình đường dẫn để chỉ đến thư mục cài đặt; NTE có thể cần thêm Wine/Proton prefix." },
+  { target: "ctx-winedlloverrides", menu: true, title: "Bật Việt hoá trong Wine/Proton", description: "Chọn Cài WINEDLLOVERRIDES để game nạp winhttp.dll. Thao tác này cần thiết nếu vào game mà chưa thấy bản dịch." },
+  { target: "launcher", title: "Chọn trình khởi chạy", description: "Nhấn tên trình khởi chạy để chọn Steam, Heroic hoặc NTE Launcher tùy game và bản cài trên máy." },
+  { target: "play", title: "Bắt đầu chơi", description: "Sau khi cài Việt hoá, nhấn Chơi game. Bạn cũng có thể dùng các mục Hiệu năng, Font và Theme để tùy chỉnh thêm." },
+];
+let helpStepIndex = 0;
+let helpPreviousTab = "home";
+
+function helpTargetFor(step) {
+  const theme = currentThemeId;
+  const ids = {
+    menu: theme === "classic" ? "btn-menu-toggle" : usesNteControls(theme) ? "btn-menu-toggle-cyber" : "btn-menu-toggle-modern",
+    launcher: theme === "classic" ? "launcher-badge" : usesNteControls(theme) ? "launcher-badge-cyber" : "launcher-badge-modern",
+    play: theme === "classic" ? "btn-play" : usesNteControls(theme) ? "btn-play-cyber" : "btn-play-modern",
+  };
+  return step.target ? document.getElementById(ids[step.target] || step.target) : null;
+}
+
+function setHelpRect(element, x, y, width, height) {
+  element.style.left = `${x}px`;
+  element.style.top = `${y}px`;
+  element.style.width = `${width}px`;
+  element.style.height = `${height}px`;
+}
+
+function placeHelpTour() {
+  if (helpTour.hidden) return;
+  const target = helpTargetFor(helpSteps[helpStepIndex]);
+  const rect = target && target.getClientRects().length ? target.getBoundingClientRect() : null;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const pad = 6;
+  const x = rect ? Math.max(0, rect.left - pad) : 0;
+  const y = rect ? Math.max(0, rect.top - pad) : 0;
+  const width = rect ? Math.min(vw - x, rect.width + pad * 2) : 0;
+  const height = rect ? Math.min(vh - y, rect.height + pad * 2) : 0;
+  helpSpotlight.hidden = !rect;
+  if (rect) setHelpRect(helpSpotlight, x, y, width, height);
+  [[0, 0, vw, y], [0, y, x, height], [x + width, y, vw - x - width, height], [0, y + height, vw, vh - y - height]]
+    .forEach((bounds, index) => setHelpRect(helpShades[index], ...bounds));
+
+  const cardWidth = helpCard.offsetWidth;
+  const cardHeight = helpCard.offsetHeight;
+  let cardX = (vw - cardWidth) / 2;
+  let cardY = (vh - cardHeight) / 2;
+  if (rect) {
+    cardX = Math.min(Math.max(16, x), vw - cardWidth - 16);
+    if (helpSteps[helpStepIndex].menu && ctxMenu) {
+      const menuRect = ctxMenu.getBoundingClientRect();
+      if (menuRect.left >= cardWidth + 32) cardX = menuRect.left - cardWidth - 16;
+      else if (vw - menuRect.right >= cardWidth + 32) cardX = menuRect.right + 16;
+      else cardX = Math.min(Math.max(16, x), vw - cardWidth - 16);
+      cardY = Math.min(Math.max(16, y + (height - cardHeight) / 2), vh - cardHeight - 16);
+    } else if (vh - y - height >= cardHeight + 24) cardY = y + height + 16;
+    else if (y >= cardHeight + 24) cardY = y - cardHeight - 16;
+    else {
+      cardY = Math.min(Math.max(16, y + (height - cardHeight) / 2), vh - cardHeight - 16);
+      cardX = x >= cardWidth + 24 ? x - cardWidth - 16 : x + width + 16;
+    }
+  }
+  helpCard.style.left = `${Math.max(16, Math.min(cardX, vw - cardWidth - 16))}px`;
+  helpCard.style.top = `${Math.max(16, Math.min(cardY, vh - cardHeight - 16))}px`;
+}
+
+function showHelpStep(index) {
+  helpStepIndex = index;
+  const step = helpSteps[index];
+  toggleMenu(Boolean(step.menu));
+  document.getElementById("help-title").textContent = step.title;
+  document.getElementById("help-description").textContent = step.description;
+  document.getElementById("help-counter").textContent = `${index + 1} / ${helpSteps.length}`;
+  document.getElementById("help-progress").innerHTML = helpSteps.map((_, i) => `<span class="${i <= index ? "active" : ""}"></span>`).join("");
+  helpBack.hidden = index === 0;
+  helpNext.textContent = index === helpSteps.length - 1 ? "Hoàn tất" : "Tiếp theo";
+  placeHelpTour();
+  helpNext.focus();
+}
+
+function closeHelpTour() {
+  helpTour.hidden = true;
+  document.body.classList.remove("help-tour-active");
+  toggleMenu(false);
+  if (currentTab !== helpPreviousTab) switchTab(helpPreviousTab);
+  helpTrigger.focus();
+}
+
+function openHelpTour() {
+  helpPreviousTab = currentTab;
+  setGameSwitchOpen(false);
+  if (currentTab !== "home") switchTab("home");
+  if (sidebarDrawer && sidebarDrawer.classList.contains("open")) setModernDrawerOpen(false);
+  document.body.classList.add("help-tour-active");
+  helpTour.hidden = false;
+  showHelpStep(0);
+  try { localStorage.setItem("wuwavh_help_seen", "1"); } catch { }
+}
+
+function showFirstRunHelp() {
+  try { if (localStorage.getItem("wuwavh_help_seen") === "1") return; } catch { }
+  if (helpTour.hidden) openHelpTour();
+}
+
+helpTrigger.addEventListener("click", openHelpTour);
+document.getElementById("help-skip").addEventListener("click", closeHelpTour);
+helpBack.addEventListener("click", () => showHelpStep(helpStepIndex - 1));
+helpNext.addEventListener("click", () => helpStepIndex === helpSteps.length - 1 ? closeHelpTour() : showHelpStep(helpStepIndex + 1));
+helpTour.addEventListener("click", e => e.stopPropagation());
+helpTour.addEventListener("keydown", e => {
+  e.stopPropagation();
+  if (e.key === "Escape") { closeHelpTour(); return; }
+  if (e.key !== "Tab") return;
+  const buttons = [...helpCard.querySelectorAll("button:not([hidden])")];
+  if (e.shiftKey && document.activeElement === buttons[0]) { e.preventDefault(); buttons[buttons.length - 1].focus(); }
+  else if (!e.shiftKey && document.activeElement === buttons[buttons.length - 1]) { e.preventDefault(); buttons[0].focus(); }
+});
+window.addEventListener("resize", placeHelpTour);
+
 // ── Credit / About Modal ───────────────────────────────────────────────────
 const creditModal = document.getElementById("credit-modal");
 
 function openCreditModal() {
-  if (creditModal) creditModal.classList.add("visible");
+  if (!creditModal) return;
+  creditModal.classList.add("visible");
+  creditModal.setAttribute("aria-hidden", "false");
+  creditModal.querySelector(".credit-close").focus();
 }
 
 function closeCreditModal() {
-  if (creditModal) creditModal.classList.remove("visible");
+  if (!creditModal) return;
+  creditModal.classList.remove("visible");
+  const trigger = currentThemeId === "classic" ? menuToggleClassic
+    : usesNteControls() ? btnMenuToggleCyber : menuToggleModern;
+  if (trigger) trigger.focus();
+  creditModal.setAttribute("aria-hidden", "true");
 }
 
 function openDiscordLink() {
-  const url = "https://discord.gg/uNRyaHJR6";
+  const url = "https://discord.com/invite/irisishere";
   ipc("open_url", { url }).catch(() => {
     window.open(url, "_blank");
   });
@@ -2307,6 +2493,17 @@ if (creditModal) {
   creditModal.onclick = (e) => {
     if (e.target === creditModal) closeCreditModal();
   };
+  creditModal.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const [first, last] = creditModal.querySelectorAll("button");
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
 }
 
 function updateLauncherModalUI() {
@@ -2399,6 +2596,7 @@ async function selectLauncher(type) {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (!helpTour.hidden) return;
     if (gameSwitchMenu && !gameSwitchMenu.hidden) {
       setGameSwitchOpen(false);
       gameSwitchTrigger.focus();
@@ -2433,6 +2631,7 @@ async function init() {
   try {
     savedNte = localStorage.getItem("nte_theme") || "cyber";
   } catch { }
+  if (savedNte === "hethe") savedNte = "hether";
   savedNteTheme = savedNte;
 
   try {
@@ -2493,8 +2692,8 @@ async function init() {
 
   if (gameStatus && gameStatus.theme && gameStatus.theme !== currentThemeId) {
     if (activeGameId === "nte") {
-      savedNteTheme = gameStatus.theme;
-      applyTheme(gameStatus.theme, false);
+      savedNteTheme = gameStatus.theme === "hethe" ? "hether" : gameStatus.theme;
+      applyTheme(savedNteTheme, false);
     } else {
       savedWuwaTheme = gameStatus.theme;
       applyTheme(gameStatus.theme, false);
@@ -2523,6 +2722,7 @@ async function init() {
       setTimeout(startUpdate, 1000);
     }
   }
+  showFirstRunHelp();
 }
 
 init();

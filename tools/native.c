@@ -2,8 +2,7 @@
 #include <stdint.h>
 
 /*
- * JingJoVH Native Payload Decryptor
- * Hardware-level high performance rolling XOR & permutation decryptor
+ * JingJoVH native XOR payload decoder (obfuscation, not cryptographic security).
  */
 
 static const uint8_t MASTER_KEY[] = {

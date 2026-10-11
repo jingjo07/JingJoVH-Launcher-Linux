@@ -150,6 +150,25 @@ body.tab-theme #bg-blur-overlay {
   -webkit-app-region: no-drag;
 }
 
+#help-trigger {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--theme-accent);
+  border-radius: 7px;
+  background: rgba(3, 7, 18, 0.72);
+  color: var(--theme-accent-bright);
+  font: 800 14px var(--font-main);
+  cursor: pointer;
+}
+
+#help-trigger:hover,
+#help-trigger:focus-visible {
+  background: var(--theme-accent-bg);
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
 .game-select-wrap {
   --switch-accent: var(--theme-accent);
   --switch-surface: rgba(12, 18, 29, .98);
@@ -1034,6 +1053,33 @@ body[data-game="nte"] .prefix-input-wrap {
 }
 
 /* ── Modals Shared ────────────────────────────────────────── */
+#help-tour { position: fixed; inset: 0; z-index: 1000; pointer-events: none; animation: help-tour-appear .2s ease-out both; }
+#help-tour[hidden] { display: none; }
+.help-shade { position: fixed; background: rgba(2, 7, 12, .78); pointer-events: auto; transition: left .2s ease, top .2s ease, width .2s ease, height .2s ease; }
+#help-spotlight { position: fixed; border: 2px solid var(--theme-accent-bright); border-radius: 8px; box-shadow: 0 0 0 4px var(--theme-accent-bg); pointer-events: auto; transition: left .2s ease, top .2s ease, width .2s ease, height .2s ease; }
+#help-spotlight[hidden] { display: none; }
+#help-card { position: fixed; width: min(370px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow-y: auto; padding: 20px; border: 1px solid var(--theme-accent); border-radius: 7px; background: #101b19; color: #f1f5f9; box-shadow: 0 18px 42px rgba(0, 0, 0, .48); pointer-events: auto; transition: left .2s ease, top .2s ease; }
+.help-tour-active #ctx-menu { transition: none; transform: none; }
+@keyframes help-tour-appear { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  #help-tour { animation: none; }
+  .help-shade, #help-spotlight, #help-card { transition: none; }
+}
+.help-card-top { display: flex; justify-content: space-between; color: var(--theme-accent-bright); font-size: 10px; font-weight: 800; letter-spacing: .8px; }
+#help-counter { color: #cbd5e1; letter-spacing: 0; }
+#help-title { margin: 12px 0 7px; font-size: 18px; line-height: 1.3; }
+#help-description { min-height: 50px; color: #cbd5e1; font-size: 13px; line-height: 1.55; }
+#help-progress { display: flex; gap: 4px; margin: 20px 0 16px; }
+#help-progress span { flex: 1; height: 2px; background: rgba(255, 255, 255, .22); }
+#help-progress span.active { background: var(--theme-accent-bright); }
+.help-actions, .help-actions > div { display: flex; align-items: center; gap: 8px; }
+.help-actions { justify-content: space-between; }
+.help-actions button { min-height: 32px; padding: 6px 10px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: #f1f5f9; font: 700 11px var(--font-main); cursor: pointer; }
+.help-actions button:hover, .help-actions button:focus-visible { border-color: var(--theme-accent); outline: 2px solid var(--theme-accent); outline-offset: 2px; }
+#help-back { border-color: rgba(255, 255, 255, .2); }
+#help-back[hidden] { display: none; }
+#help-next { background: var(--theme-accent); color: var(--theme-accent-btn-text); }
+
 #path-modal,
 #launcher-modal,
 #credit-modal {
@@ -1230,18 +1276,23 @@ body[data-game="nte"] #opt-nte-steam {
 
 /* ── Credit Modal Styling ──────────────────────────────────── */
 .credit-card {
-  width: 440px;
-  max-width: 90vw;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   background: rgba(12, 20, 32, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 16px;
-  padding: 24px 26px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
   transform: scale(0.96);
   transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#credit-modal {
+  visibility: hidden;
+}
+
+#credit-modal.visible {
+  visibility: visible;
 }
 
 #credit-modal.visible .credit-card {
@@ -1249,130 +1300,201 @@ body[data-game="nte"] #opt-nte-steam {
 }
 
 .credit-header {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  padding: 22px 26px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.credit-badge {
-  font-size: 9.5px;
+.credit-header-top,
+.credit-brand,
+.credit-community {
+  display: flex;
+  align-items: center;
+}
+
+.credit-header-top {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.credit-badge,
+.credit-section-label {
+  color: var(--mint-bright, var(--theme-accent-bright));
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 2px;
-  color: var(--theme-accent-bright);
-  background: rgba(255, 255, 255, 0.08);
+  letter-spacing: 1.5px;
+}
+
+.credit-close {
+  width: 28px;
+  height: 28px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 2px 10px;
-  margin-bottom: 2px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.credit-close:hover {
+  color: #fff;
+  border-color: var(--mint-bright, var(--theme-accent-bright));
+}
+
+.credit-brand {
+  gap: 14px;
+}
+
+.credit-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex: none;
 }
 
 .credit-title {
-  font-size: 17px;
-  font-weight: 900;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
   color: #fff;
-  letter-spacing: 0.5px;
 }
 
 .credit-desc {
-  font-size: 11.5px;
-  color: #94a3b8;
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #aebccf;
+}
+
+.credit-body {
+  padding: 20px 26px 18px;
+}
+
+.credit-section-label {
+  margin-bottom: 10px;
 }
 
 .credit-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 .credit-item {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
   background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  transition: all 0.2s ease;
-}
-
-.credit-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.credit-item.discord-item {
-  cursor: pointer;
-  border-color: rgba(88, 101, 242, 0.35);
-  background: rgba(88, 101, 242, 0.08);
-}
-
-.credit-item.discord-item:hover {
-  background: rgba(88, 101, 242, 0.18);
-  border-color: #5865F2;
-  box-shadow: 0 0 16px rgba(88, 101, 242, 0.3);
-  transform: translateY(-1px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
 }
 
 .credit-icon-wrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  flex: none;
 }
 
 .credit-icon-wrap.dev {
-  background: rgba(14, 165, 233, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(14, 165, 233, 0.3);
+  background: var(--theme-accent-bg);
+  color: var(--mint-bright, var(--theme-accent-bright));
 }
 
 .credit-icon-wrap.trs {
-  background: rgba(234, 179, 8, 0.15);
-  color: #facc15;
-  border: 1px solid rgba(234, 179, 8, 0.3);
-}
-
-.credit-icon-wrap.discord {
-  background: rgba(88, 101, 242, 0.2);
-  color: #5865F2;
-  border: 1px solid rgba(88, 101, 242, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
 }
 
 .credit-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex-grow: 1;
-}
-
-.credit-role {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.credit-author {
-  font-size: 14px;
-  font-weight: 800;
-  color: #f1f5f9;
-  letter-spacing: 0.3px;
-}
-
-.credit-author.discord-link {
-  color: #818cf8;
-  display: flex;
-  align-items: center;
   gap: 4px;
 }
 
-.credit-ext-arrow {
+.credit-role {
+  font-size: 11.5px;
+  color: #aebccf;
+  line-height: 1.35;
+}
+
+.credit-author {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.credit-community {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px 14px;
+  gap: 12px;
+  text-align: left;
+  border: 1px solid rgba(88, 101, 242, 0.48);
+  border-radius: 10px;
+  background: rgba(88, 101, 242, 0.12);
+  color: #f1f5ff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.credit-community:hover {
+  background: rgba(88, 101, 242, 0.22);
+  border-color: #9ba4ff;
+}
+
+.credit-community-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 8px;
+  background: #5865f2;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.credit-community-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
   font-size: 12px;
-  opacity: 0.8;
+}
+
+.credit-community-copy small {
+  color: #bcc5ff;
+  font-size: 11px;
+}
+
+.credit-community-arrow {
+  color: #c9ceff;
+  font-size: 18px;
+}
+
+.credit-close:focus-visible,
+.credit-community:focus-visible {
+  outline: 2px solid var(--mint-bright, var(--theme-accent-bright));
+  outline-offset: 3px;
+}
+
+.credit-footer {
+  padding: 0 26px 20px;
+  color: #8c9bae;
+  font-size: 11px;
+}
+
+@media (max-width: 500px) {
+  .credit-list { grid-template-columns: 1fr; }
+  .credit-item { flex-direction: row; align-items: center; }
 }
 
 /* ── Toast Container ──────────────────────────────────────── */

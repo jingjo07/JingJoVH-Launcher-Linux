@@ -84,8 +84,8 @@ if [ -n "$FONTTOOLS_DIR" ] && [ -d "$FONTTOOLS_DIR" ]; then
     rm -rf "$APP_DIR/fontTools/tests" "$APP_DIR/fontTools"/*_test.py 2>/dev/null || true
 fi
 
-# Mã hóa mã nguồn backend và tạo native C payload
-echo "Mã hóa mã nguồn backend và tạo native payload (libJingJoNative)..."
+# Làm rối mã nguồn backend và tạo native C payload
+echo "Làm rối mã nguồn backend và tạo native payload (libJingJoNative)..."
 python3 "$SCRIPT_DIR/tools/encrypt_payload.py" "$APP_DIR"
 
 # Icon
@@ -134,15 +134,14 @@ export XDG_DATA_DIRS="$APPDIR/usr/share:${XDG_DATA_DIRS:-/usr/local/share:/usr/s
 
 # Kiểm tra WebKitGTK trên hệ thống
 if command -v python3 &>/dev/null; then
-    if python3 -c "import gi; gi.require_version('Gtk', '3.0'); gi.require_version('WebKit2', '4.1'); from gi.repository import Gtk, WebKit2" 2>/dev/null || \
-       python3 -c "import gi; gi.require_version('Gtk', '3.0'); gi.require_version('WebKit2', '4.0'); from gi.repository import Gtk, WebKit2" 2>/dev/null; then
+    if python3 -c "import gi; gi.require_version('Gtk', '3.0'); gi.require_version('WebKit2', '4.1'); from gi.repository import Gtk, WebKit2" 2>/dev/null; then
         exec python3 "$APPDIR/launcher.py" "$@"
     fi
 fi
 # Thông báo lỗi nếu thiếu WebKitGTK
-echo "[JingJoVH] Lỗi: Cần cài đặt WebKitGTK (gir1.2-webkit2-4.1 hoặc gir1.2-webkit2-4.0) để khởi chạy launcher." >&2
+echo "[JingJoVH] Lỗi: Cần cài đặt WebKitGTK 4.1 (gir1.2-webkit2-4.1) để khởi chạy launcher." >&2
 if command -v zenity &>/dev/null; then
-    zenity --error --title="JingJoVH Launcher" --text="Không tìm thấy WebKitGTK trên hệ thống!\n\nVui lòng cài đặt gói:\n- Ubuntu/Debian/Mint: sudo apt install gir1.2-webkit2-4.1\n- Arch/Manjaro: sudo pacman -S webkit2gtk-4.1\n- Fedora: sudo dnf install webkit2gtk4.1" 2>/dev/null || true
+    zenity --error --title="JingJoVH Launcher" --text="Không tìm thấy WebKitGTK 4.1 trên hệ thống!\n\nVui lòng cài đặt gói:\n- Ubuntu/Debian/Mint: sudo apt install gir1.2-webkit2-4.1\n- Arch/Manjaro: sudo pacman -S webkit2gtk-4.1\n- Fedora: sudo dnf install webkit2gtk4.1" 2>/dev/null || true
 fi
 exit 1
 EOF

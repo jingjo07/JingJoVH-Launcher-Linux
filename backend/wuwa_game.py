@@ -1,8 +1,9 @@
 """
 Game process management for WuWaVH Launcher
 """
-import os, subprocess, json, glob, shutil, time, re, copy, threading
+import os, subprocess, json, glob, shutil, time, re, copy, threading, tempfile
 from backend.version import LAUNCHER_VERSION
+from backend.downloader import sha256_file
 try:
     import psutil
     HAS_PSUTIL = True
@@ -1094,17 +1095,34 @@ def install_paks(pak_source_dir: str = None) -> list[str]:
             # Skip font PAK files — they are managed separately
             if "font" in f.lower() and f.endswith(".pak"):
                 continue
-            if f.endswith(".pak"):
+            if f == "WuWaVH_99_P.pak":
                 dst = os.path.join(pak_dir, f)
-                shutil.copy2(src, dst)
+                _copy_to_game(src, dst)
                 installed.append(f)
                 seen.add(f)
             elif f == "winhttp.dll":
                 dst = os.path.join(bin_dir, f)
-                shutil.copy2(src, dst)
+                backup = dst + ".wuwavh_bak"
+                marker = dst + ".wuwavh_sha256"
+                if os.path.isfile(dst) and not os.path.exists(marker) and not os.path.exists(backup) and not get_vh_version():
+                    _copy_to_game(dst, backup)
+                _copy_to_game(src, dst)
+                with open(marker, "w", encoding="ascii") as output:
+                    output.write(sha256_file(dst))
                 installed.append(f)
                 seen.add(f)
     return installed
+
+
+def _copy_to_game(src: str, dst: str):
+    fd, temporary = tempfile.mkstemp(prefix=".wuwavh-", dir=os.path.dirname(dst))
+    os.close(fd)
+    try:
+        shutil.copy2(src, temporary)
+        os.replace(temporary, dst)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
 
 def get_vh_version() -> str | None:
     cfg = load_config()
@@ -1125,21 +1143,37 @@ def uninstall_paks() -> list[str]:
     bin_dir = os.path.join(game_dir, "Client/Binaries/Win64")
     
     removed = []
-    if os.path.isdir(pak_dir):
-        for f in os.listdir(pak_dir):
-            if "_99_P.pak" in f or "_99_P.utoc" in f or "_99_P.ucas" in f:
-                try:
-                    os.remove(os.path.join(pak_dir, f))
-                    removed.append(f)
-                except Exception:
-                    pass
+    for f in ("WuWaVH_99_P.pak", "WuWaVH_99_P.utoc", "WuWaVH_99_P.ucas"):
+        path = os.path.join(pak_dir, f)
+        if os.path.isfile(path):
+            try:
+                os.remove(path)
+                removed.append(f)
+            except OSError:
+                pass
                     
     dll_path = os.path.join(bin_dir, "winhttp.dll")
-    if os.path.exists(dll_path):
+    marker = dll_path + ".wuwavh_sha256"
+    backup = dll_path + ".wuwavh_bak"
+    if os.path.isfile(dll_path):
         try:
-            os.remove(dll_path)
-            removed.append("winhttp.dll")
-        except Exception:
+            if os.path.isfile(marker):
+                with open(marker, encoding="ascii") as source:
+                    owned_hash = source.read().strip()
+                if sha256_file(dll_path) == owned_hash:
+                    if os.path.isfile(backup):
+                        os.replace(backup, dll_path)
+                    else:
+                        os.remove(dll_path)
+                    os.remove(marker)
+                    removed.append("winhttp.dll")
+            else:
+                # Older installs have no marker; remove only a byte-for-byte known launcher DLL.
+                sources = (os.path.join(get_paks_dir(), "winhttp.dll"), os.path.join(get_bundled_paks_dir(), "winhttp.dll"))
+                if any(os.path.isfile(src) and sha256_file(src) == sha256_file(dll_path) for src in sources):
+                    os.remove(dll_path)
+                    removed.append("winhttp.dll")
+        except OSError:
             pass
             
     set_vh_version("")
@@ -1197,7 +1231,7 @@ def get_status() -> dict:
 
     installed_paks = []
     if pak_dir and os.path.isdir(pak_dir):
-        installed_paks = [f for f in os.listdir(pak_dir) if "_99_P" in f]
+        installed_paks = [f for f in os.listdir(pak_dir) if f in ("WuWaVH_99_P.pak", "WuWaVH_99_P.utoc", "WuWaVH_99_P.ucas")]
 
     return {
         "game_path":      game_path,

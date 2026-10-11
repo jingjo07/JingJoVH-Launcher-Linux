@@ -58,7 +58,7 @@ def check_update():
 
     tag = release.get("tag_name", "")
     newer = _is_newer(tag, LAUNCHER_VERSION)
-    asset = next((item for item in release.get("assets", []) if item.get("name") in (ASSET_NAME, LEGACY_ASSET_NAME)), None)
+    asset = next((item for name in (ASSET_NAME, LEGACY_ASSET_NAME) for item in release.get("assets", []) if item.get("name") == name), None)
     can_install = bool(
         newer and asset
         and re.fullmatch(r"sha256:[a-fA-F0-9]{64}", asset.get("digest", ""))
@@ -88,7 +88,7 @@ def install_update(info, progress=None, status=None):
     if not re.fullmatch(r"sha256:[a-fA-F0-9]{64}", digest):
         raise RuntimeError("Bản phát hành thiếu checksum SHA-256 để xác minh")
     url = info.get("asset_url", "")
-    if not url.startswith(RELEASE_DOWNLOAD_PREFIX):
+    if not url.startswith((RELEASE_DOWNLOAD_PREFIX, LEGACY_RELEASE_DOWNLOAD_PREFIX)):
         raise RuntimeError("Đường dẫn tải AppImage không hợp lệ")
     expected_size = int(info.get("asset_size") or 0)
     if expected_size > MAX_DOWNLOAD_SIZE:

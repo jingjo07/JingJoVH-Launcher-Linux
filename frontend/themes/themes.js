@@ -41,6 +41,17 @@ const WUWA_THEMES = [
 
 const NTE_THEMES = [
   {
+    id: "hether",
+    name: "Hether",
+    subtitle: "Midnight Violet",
+    description: "Giao diện NTE tím đêm với thông báo, trình phát nhạc và nút khởi chạy nổi bật.",
+    tag: "Tím Đêm",
+    accentColor: "#a98aff",
+    palette: ["#a98aff", "#7653d5", "#090b25"],
+    css: "themes/nte-hether/theme.css",
+    previewGradient: "linear-gradient(135deg, #080b25 0%, #25205a 55%, #7855d5 100%)",
+  },
+  {
     id: "cyber",
     name: "Tương Lai",
     subtitle: "Cyberpunk Crimson HUD",

@@ -15,33 +15,25 @@ from gi.repository import Gtk, WebKit2, GLib, Gdk, GdkPixbuf
 GLib.set_prgname("jingjovh")
 GLib.set_application_name("JingJoVH Launcher")
 
-import sys, os, json, threading, time, subprocess
+import sys, os, json, threading, time, subprocess, fcntl
+from pathlib import Path
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 BASE_DIR           = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR       = os.path.join(BASE_DIR, "frontend")
 BUNDLED_ASSETS_DIR = os.path.join(FRONTEND_DIR, "assets")
 USER_ASSETS_DIR    = os.path.expanduser("~/.config/wuwavh/assets")
+UPDATE_LOCK_PATH   = os.path.expanduser("~/.config/wuwavh/update.lock")
 
 sys.path.insert(0, BASE_DIR)
 from backend import downloader, game_context, launcher_update, version, wuwa_game, wuwa_performance
 
 PAK_DIR = wuwa_game.get_paks_dir()
 
-def get_effective_assets_dir() -> str:
-    """Get assets dir for WebKit media. Prioritizes user updated media if present, else bundled."""
-    if os.path.isfile(os.path.join(USER_ASSETS_DIR, "bg-video-720p.mp4")) and os.path.getsize(os.path.join(USER_ASSETS_DIR, "bg-video-720p.mp4")) > 0:
-        return USER_ASSETS_DIR
-    return BUNDLED_ASSETS_DIR
-
 def get_writable_assets_dir() -> str:
     """Get writable directory to download new/updated media assets."""
-    if os.environ.get("APPDIR") or os.environ.get("APPIMAGE") or not os.access(BUNDLED_ASSETS_DIR, os.W_OK):
-        os.makedirs(USER_ASSETS_DIR, exist_ok=True)
-        return USER_ASSETS_DIR
-    return BUNDLED_ASSETS_DIR
-
-ASSETS_DIR = get_effective_assets_dir()
+    os.makedirs(USER_ASSETS_DIR, exist_ok=True)
+    return USER_ASSETS_DIR
 
 # ── IPC Handler ──────────────────────────────────────────────────────────────
 
@@ -102,7 +94,7 @@ class IPC:
                 if getattr(self, "_launcher_update_running", False):
                     return {"status": "running"}
                 self._launcher_update_running = True
-                threading.Thread(target=self._do_launcher_update, daemon=True).start()
+                threading.Thread(target=self._run_update, args=(self._do_launcher_update, "launcher_update_error"), daemon=True).start()
                 return {"status": "started"}
 
             case "open_game_folder":
@@ -141,11 +133,11 @@ class IPC:
             case "update_vh" | "update_mod":
                 # Run in separate thread so _dispatch_action returns immediately
                 target = self._do_update_nte if game_context.get_active_game_id() == "nte" else self._do_update_vh
-                threading.Thread(target=target, daemon=True).start()
+                threading.Thread(target=self._run_update, args=(target, "update_error"), daemon=True).start()
                 return {"status": "started"}
 
             case "update_launcher_assets" | "update_assets":
-                threading.Thread(target=self._do_update_assets, daemon=True).start()
+                threading.Thread(target=self._run_update, args=(self._do_update_assets, "update_assets_error"), daemon=True).start()
                 return {"status": "started"}
 
             case "set_vh_version":
@@ -412,6 +404,20 @@ class IPC:
         except Exception as e:
             self.emit("update_error", {"error": str(e)})
 
+    def _run_update(self, task, error_event):
+        try:
+            os.makedirs(os.path.dirname(UPDATE_LOCK_PATH), exist_ok=True)
+            with open(UPDATE_LOCK_PATH, "w") as lock_file:
+                fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                task()
+        except BlockingIOError:
+            self.emit(error_event, {"error": "Một lượt cập nhật khác đang chạy"})
+        except Exception as exc:
+            self.emit(error_event, {"error": str(exc)})
+        finally:
+            if error_event == "launcher_update_error":
+                self._launcher_update_running = False
+
     def _do_update_nte(self):
         """Install NTE translation through the shared progress events."""
         from backend import nte_downloader
@@ -419,8 +425,14 @@ class IPC:
         try:
             info = nte_downloader.get_version_info()
             version = info["version"]
+            last_progress = time.monotonic()
 
             def _progress(done, total):
+                nonlocal last_progress
+                now = time.monotonic()
+                if now - last_progress < 0.35 and (not total or done < total):
+                    return
+                last_progress = now
                 self.emit("update_progress", {
                     "phase": "download",
                     "file": "NTEVH",
@@ -433,7 +445,7 @@ class IPC:
                 })
 
             result = nte_downloader.install(version, _progress)
-            self.emit("update_done", {"version": version, "installed": result["installed"]})
+            self.emit("update_done", {"version": version, "installed": result["installed"], "font_reapplied": result["font_reapplied"]})
         except Exception as exc:
             self.emit("update_error", {"error": str(exc)})
 
@@ -548,7 +560,7 @@ class LauncherWindow(Gtk.Window):
         self.set_title(f"JingJoVH Launcher v{version.LAUNCHER_VERSION}")
 
         # Set App Window Icon from frontend/assets/icon.png
-        icon_path = os.path.join(ASSETS_DIR, "icon.png")
+        icon_path = os.path.join(BUNDLED_ASSETS_DIR, "icon.png")
         if os.path.isfile(icon_path):
             try:
                 pixbuf = GdkPixbuf.Pixbuf.new_from_file(icon_path)
@@ -604,9 +616,10 @@ class LauncherWindow(Gtk.Window):
         # Inject global vars before page load
         inject_script = WebKit2.UserScript(
             f"""
-            window.ASSETS_DIR = "file://{ASSETS_DIR}";
-            window.PAK_DIR    = "{PAK_DIR}";
-            window.LAUNCHER_VERSION = "{version.LAUNCHER_VERSION}";
+            window.ASSETS_DIR = {json.dumps(Path(get_writable_assets_dir()).resolve().as_uri())};
+            window.BUNDLED_ASSETS_DIR = {json.dumps(Path(BUNDLED_ASSETS_DIR).resolve().as_uri())};
+            window.PAK_DIR    = {json.dumps(PAK_DIR)};
+            window.LAUNCHER_VERSION = {json.dumps(version.LAUNCHER_VERSION)};
             """,
             WebKit2.UserContentInjectedFrames.ALL_FRAMES,
             WebKit2.UserScriptInjectionTime.START,
@@ -690,10 +703,10 @@ def ensure_assets():
         writable_assets = get_writable_assets_dir()
         web_assets = downloader.get_web_assets()
         for filename, url, label in web_assets:
-            eff_path = os.path.join(get_effective_assets_dir(), filename)
-            if os.path.exists(eff_path) and os.path.getsize(eff_path) > 0:
-                continue
             dest = os.path.join(writable_assets, filename)
+            bundled = os.path.join(BUNDLED_ASSETS_DIR, filename)
+            if any(os.path.isfile(path) and os.path.getsize(path) > 0 for path in (dest, bundled)):
+                continue
             print(f"[Assets] Downloading {filename} from official Kuro Web...")
             try:
                 downloader.download_file(url, dest, lambda d, t: None)

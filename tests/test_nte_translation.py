@@ -71,6 +71,40 @@ class NteTranslationTests(unittest.TestCase):
             self.assertTrue(os.path.isfile(os.path.join(self.root, "Client", "WindowsNoEditor", relative)))
         self.assertEqual(game.load_config()["nte_vh_version"], "1.4.0")
 
+    def test_install_accepts_backslash_zip_member_names(self):
+        from backend import nte_downloader
+
+        archive_data = make_archive([path.replace("/", "\\") for path in nte.MANAGED_FILES])
+
+        def download(url, destination, progress):
+            with open(destination, "wb") as output:
+                output.write(archive_data)
+
+        with mock.patch.object(nte_downloader.downloader, "mint_href", return_value="https://signed.example/nte"), mock.patch.object(
+            nte_downloader.downloader, "download_file", side_effect=download
+        ):
+            result = nte_downloader.install("1.4.0")
+
+        self.assertEqual(set(result["installed"]), set(nte.MANAGED_FILES))
+        for relative in nte.MANAGED_FILES:
+            self.assertTrue(os.path.isfile(os.path.join(self.root, "Client", "WindowsNoEditor", relative)))
+
+    def test_install_reports_when_saved_font_cannot_be_reapplied(self):
+        from backend import nte_downloader, nte_font
+
+        archive_data = make_archive()
+
+        def download(url, destination, progress):
+            with open(destination, "wb") as output:
+                output.write(archive_data)
+
+        with mock.patch.object(nte_downloader.downloader, "mint_href", return_value="https://signed.example/nte"), mock.patch.object(
+            nte_downloader.downloader, "download_file", side_effect=download
+        ), mock.patch.object(nte_font, "refresh_after_translation_update", return_value=False):
+            result = nte_downloader.install("1.4.0")
+
+        self.assertFalse(result["font_reapplied"])
+
     def test_install_rejects_unexpected_archive_member(self):
         from backend import nte_downloader
 
@@ -118,6 +152,8 @@ class NteTranslationTests(unittest.TestCase):
 
         with open(first, "rb") as restored:
             self.assertEqual(restored.read(), b"old")
+        self.assertFalse(os.path.exists(first + ".wuwavh_bak"))
+        self.assertFalse(os.path.exists(first + ".wuwavh_sha256"))
         self.assertFalse(os.path.exists(os.path.join(content_root, nte.MANAGED_FILES[1])))
         self.assertIsNone(game.load_config().get("nte_vh_version"))
 
@@ -125,10 +161,16 @@ class NteTranslationTests(unittest.TestCase):
         from backend import nte_downloader
 
         content_root = os.path.join(self.root, "Client", "WindowsNoEditor")
-        for relative in nte.MANAGED_FILES:
-            path = os.path.join(content_root, relative)
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            open(path, "wb").close()
+        archive_data = make_archive()
+
+        def download(url, destination, progress):
+            with open(destination, "wb") as output:
+                output.write(archive_data)
+
+        with mock.patch.object(nte_downloader.downloader, "mint_href", return_value="https://signed.example/nte"), mock.patch.object(
+            nte_downloader.downloader, "download_file", side_effect=download
+        ):
+            nte_downloader.install("1.4.0")
         unrelated = os.path.join(content_root, "HT", "Content", "Paks", "keep-me.pak")
         open(unrelated, "wb").close()
 
@@ -136,6 +178,63 @@ class NteTranslationTests(unittest.TestCase):
 
         self.assertEqual(set(removed), set(nte.MANAGED_FILES))
         self.assertTrue(os.path.isfile(unrelated))
+
+    def test_install_and_uninstall_restore_preexisting_dll(self):
+        from backend import nte_downloader
+
+        content_root = os.path.join(self.root, "Client", "WindowsNoEditor")
+        dll = os.path.join(content_root, "HT", "Binaries", "Win64", "winhttp.dll")
+        with open(dll, "wb") as output:
+            output.write(b"user dll")
+        archive_data = make_archive()
+
+        def download(url, destination, progress):
+            with open(destination, "wb") as output:
+                output.write(archive_data)
+
+        with mock.patch.object(nte_downloader.downloader, "mint_href", return_value="https://signed.example/nte"), mock.patch.object(
+            nte_downloader.downloader, "download_file", side_effect=download
+        ):
+            nte_downloader.install("1.4.0")
+        nte_downloader.uninstall()
+
+        with open(dll, "rb") as restored:
+            self.assertEqual(restored.read(), b"user dll")
+
+    def test_uninstall_keeps_files_without_ownership_marker(self):
+        from backend import nte_downloader
+
+        content_root = os.path.join(self.root, "Client", "WindowsNoEditor")
+        dll = os.path.join(content_root, "HT", "Binaries", "Win64", "winhttp.dll")
+        with open(dll, "wb") as output:
+            output.write(b"other mod")
+
+        with self.assertRaisesRegex(RuntimeError, "không rõ quyền sở hữu"):
+            nte_downloader.uninstall()
+        with open(dll, "rb") as current:
+            self.assertEqual(current.read(), b"other mod")
+
+    def test_uninstall_keeps_managed_file_changed_after_install(self):
+        from backend import nte_downloader
+
+        archive_data = make_archive()
+
+        def download(url, destination, progress):
+            with open(destination, "wb") as output:
+                output.write(archive_data)
+
+        with mock.patch.object(nte_downloader.downloader, "mint_href", return_value="https://signed.example/nte"), mock.patch.object(
+            nte_downloader.downloader, "download_file", side_effect=download
+        ):
+            nte_downloader.install("1.4.0")
+
+        dll = os.path.join(self.root, "Client", "WindowsNoEditor", nte.MANAGED_FILES[-1])
+        with open(dll, "wb") as output:
+            output.write(b"changed by another mod")
+        with self.assertRaisesRegex(RuntimeError, "đã thay đổi"):
+            nte_downloader.uninstall()
+        with open(dll, "rb") as current:
+            self.assertEqual(current.read(), b"changed by another mod")
 
 
 if __name__ == "__main__":

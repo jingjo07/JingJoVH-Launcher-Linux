@@ -557,6 +557,11 @@
   transform: translateY(-2px);
 }
 
+#btn-menu-toggle:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+
 #btn-play,
 .classic-play-btn {
   height: 54px !important;
@@ -661,8 +666,7 @@
    3. CLASSIC FONT PAGE (Royal Gold HUD Edition)
    ════════════════════════════════════════════════════════════ */
 #classic-font-view {
-  width: 580px;
-  max-width: 90vw;
+  width: min(600px, 92vw);
   display: flex;
   flex-direction: column;
 }
@@ -798,11 +802,34 @@
   font-size: 14.5px;
   font-weight: 800;
   color: var(--gold-bright);
+  overflow-wrap: anywhere;
 }
 
 .classic-font-current-detail {
   font-size: 11.5px;
   color: var(--text-dim);
+}
+
+.classic-font-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid rgba(200, 160, 60, 0.2);
+}
+
+.classic-font-preview-label {
+  color: var(--gold-mid);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.classic-font-preview-text {
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .classic-font-actions-wrap {
@@ -813,11 +840,13 @@
 
 .classic-font-actions-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 10px;
 }
 
 .classic-action-tile {
+  width: 100%;
+  font: inherit;
+  text-align: left;
   background: rgba(200, 160, 60, 0.05);
   border: 1.2px solid rgba(200, 160, 60, 0.25);
   border-radius: 14px;
@@ -835,6 +864,20 @@
   border-color: var(--gold-bright);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(200, 160, 60, 0.25);
   transform: translateY(-2px);
+}
+
+.classic-action-tile:focus-visible,
+.classic-font-restore-btn:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+
+.classic-action-tile:disabled,
+.classic-font-restore-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .classic-action-tile .tile-icon-box {

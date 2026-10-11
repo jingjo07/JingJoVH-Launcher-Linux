@@ -39,6 +39,29 @@ def release_info(payload):
 
 
 class LauncherUpdateTests(unittest.TestCase):
+    def test_legacy_release_url_can_be_installed_when_offered(self):
+        payload = b"\x7fELFlegacy"
+        legacy_url = launcher_update.LEGACY_RELEASE_DOWNLOAD_PREFIX + "v9.9/" + launcher_update.LEGACY_ASSET_NAME
+        release = release_info(payload)
+        release["assets"][0]["name"] = launcher_update.LEGACY_ASSET_NAME
+        release["assets"][0]["browser_download_url"] = legacy_url
+
+        with tempfile.TemporaryDirectory() as directory, mock.patch.dict(
+            os.environ, {"APPIMAGE": "", "XDG_DATA_HOME": directory}
+        ), mock.patch.object(
+            launcher_update.urllib.request, "urlopen", return_value=Response(json.dumps(release).encode())
+        ), mock.patch.object(downloader, "download_file") as download:
+            def write_download(url, destination, progress, **options):
+                with open(destination, "wb") as output:
+                    output.write(payload)
+
+            download.side_effect = write_download
+            info = launcher_update.check_update()
+            self.assertTrue(info["can_install"])
+            target = launcher_update.install_update(info)
+            self.assertTrue(os.path.isfile(target))
+            self.assertEqual(download.call_args.args[0], legacy_url)
+
     def test_version_comparison_ignores_trailing_zeroes(self):
         self.assertFalse(launcher_update._is_newer("v1.3.0", "1.3"))
         self.assertTrue(launcher_update._is_newer("v1.4", "1.3"))

@@ -8,7 +8,7 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
 
   <p align="center">
     <a href="https://github.com/jingjo07/JingJoVH-Launcher-Linux/releases"><img src="https://img.shields.io/github/v/release/jingjo07/JingJoVH-Launcher-Linux?color=38bdf8&label=Release&style=flat-square" alt="Release"></a>
-    <a href="https://discord.com/invite/uNRyaHJR6"><img src="https://img.shields.io/badge/Discord-Tham%20gia-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
+    <a href="https://discord.com/invite/irisishere"><img src="https://img.shields.io/badge/Discord-Tham%20gia-5865F2?style=flat-square&logo=discord&logoColor=white" alt="Discord"></a>
     <a href="#"><img src="https://img.shields.io/badge/Platform-Linux%20%7C%20SteamDeck-6366f1?style=flat-square" alt="Platform"></a>
     <a href="#"><img src="https://img.shields.io/badge/Python-3.10%2B-10b981?style=flat-square" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square" alt="License: GPL v3"></a>
@@ -36,7 +36,8 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
     - _Hiện Đại_: Thanh dock thu gọn bên trái, hiệu ứng kính mờ và màu xanh Mint.
     - _Thủy Mặc_: Phong cách tranh thủy mặc Trung Hoa tinh tế và khung viền cổ phong.
   - **Neverness to Everness (NTE)**:
-    - _Cyber_: Giao diện viễn tưởng với ánh sáng Glitch Teal và lưới tọa độ tương lai.
+    - _Cyber_: Giao diện viễn tưởng với ánh sáng đỏ neon và lưới tọa độ tương lai.
+    - _Hether_: Giao diện tím đêm với thông báo, điều khiển nhạc và nút khởi chạy nổi bật.
   - Video nền và nhạc nền sống động riêng biệt theo từng tựa game.
 
 - **Tối ưu hóa hiệu năng đồ họa (Engine.ini)**:
@@ -142,7 +143,7 @@ File đóng gói sẽ được tạo ra tại thư mục hiện tại: `JingJoVH
 ## 💬 Cộng đồng & Hỗ trợ
 
 Tham gia máy chủ Discord để cùng thảo luận, cập nhật thông tin về Việt Hóa và hỗ trợ kỹ thuật:  
-👉 **[Tham gia máy chủ Discord IRIS](https://discord.com/invite/uNRyaHJR6)**
+👉 **[Tham gia máy chủ Discord IRIS](https://discord.com/invite/irisishere)**
 
 ---
 

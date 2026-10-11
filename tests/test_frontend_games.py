@@ -65,6 +65,17 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn('game_context.install_custom_font', launcher)
         self.assertIn('game_context.get_font_status', launcher)
 
+    def test_hether_does_not_inherit_cyber_palette(self):
+        cyber = (ROOT / "frontend/themes/nte-cyber/theme.css").read_text(encoding="utf-8")
+        hether = (ROOT / "frontend/themes/nte-hether/theme.css").read_text(encoding="utf-8")
+        shared_rules = cyber.split("/* ── Visibility Rules", 1)[1]
+
+        for color in ("#ff1a53", "#ff4d6d", "#d9043d", "rgba(255, 26, 83", "rgba(255, 77, 109"):
+            self.assertNotIn(color, shared_rules)
+        self.assertIn("--cyan-rgb: 170, 139, 255", hether)
+        self.assertIn("--panel-rgb: 20, 17, 49", hether)
+        self.assertIn("--toast-bg: rgba(17, 14, 44, .98)", hether)
+
     def test_themes_separation(self):
         themes_text = (ROOT / "frontend/themes/themes.js").read_text(encoding="utf-8")
         app_text = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
@@ -76,11 +87,19 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn("const THEMES = WUWA_THEMES;", themes_text)
         self.assertIn("function getThemesForGame", themes_text)
 
-        # DangDev belongs to WuWa; Cyber belongs to NTE.
+        # DangDev belongs to WuWa; Cyber and Hether belong to NTE.
         self.assertIn('id: "dangdev"', themes_text)
         self.assertIn('css: "themes/wuwa-dangdev/theme.css"', themes_text)
         self.assertIn('id: "cyber"', themes_text)
         self.assertIn('css: "themes/nte-cyber/theme.css"', themes_text)
+        self.assertIn('id: "hether"', themes_text)
+        self.assertIn('css: "themes/nte-hether/theme.css"', themes_text)
+        self.assertTrue((ROOT / "frontend/themes/nte-hether/theme.css").is_file())
+        self.assertNotIn('id: "hethe"', themes_text)
+        self.assertFalse((ROOT / "frontend/themes/nte-hethe/theme.css").exists())
+        self.assertIn('savedNte = "cyber"', app_text)
+        self.assertIn('gameStatus.theme === "hethe" ? "hether" : gameStatus.theme', app_text)
+        self.assertIn('themeId === "cyber" || themeId === "hether"', app_text)
 
         # app.js must use getThemesForGame and manage savedNteTheme
         self.assertIn("getThemesForGame", app_text)
@@ -223,7 +242,8 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn("const requestedGame = activeGameId", app)
         self.assertIn("requestedGame !== activeGameId || (status.game && status.game !== activeGameId)", app)
         self.assertIn("let mediaInitialized = false", app)
-        self.assertIn("if (mediaInitialized) switchMediaForGame(activeGameId)", app)
+        self.assertIn("if (mediaInitialized) switchMediaForGame(activeGameId, resumeMedia)", app)
+        self.assertIn("applyGameUI(gameId, true)", app)
 
     def test_nte_startup_auto_updates_missing_or_outdated_translation(self):
         app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")

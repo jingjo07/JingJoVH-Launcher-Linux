@@ -1,0 +1,356 @@
+/* Hether uses the launcher controls and pages already wired for the NTE Cyber theme. */
+@import url('../nte-cyber/theme.css');
+
+body.theme-hether {
+  --cyan: #aa8bff;
+  --cyan-dim: #8b68ee;
+  --cyan-dark: rgba(170, 139, 255, .16);
+  --cyan-glow: rgba(170, 139, 255, .45);
+  --magenta: #c8b3ff;
+  --magenta-dim: #8367d1;
+  --magenta-dark: rgba(200, 179, 255, .15);
+  --magenta-glow: rgba(200, 179, 255, .45);
+  --purple: #5c42b7;
+  --purple-glow: rgba(110, 78, 191, .45);
+  --cyan-rgb: 170, 139, 255;
+  --magenta-rgb: 200, 179, 255;
+  --purple-rgb: 110, 78, 191;
+  --panel-rgb: 20, 17, 49;
+  --panel-card-rgb: 26, 22, 56;
+  --chrome-rgb: 8, 10, 31;
+  --input-rgb: 11, 10, 31;
+  --modal-rgb: 17, 14, 44;
+  --card-dark-rgb: 18, 14, 42;
+  --surface-dark: #15112f;
+  --text-faint: #84799f;
+  --text-muted: #9c90b9;
+  --text-soft: #aa9dc9;
+  --text-secondary: #baaed7;
+  --text-rose: #b5a3d0;
+  --text-light: #d5cbea;
+  --text-bright-warm: #e2daf3;
+  --text-pale: #d1bcef;
+  --text-heading: #eee5ff;
+  --text-white-warm: #f5f0ff;
+  --text-highlight: #e2d5ff;
+  --focus-accent: #d5c3ff;
+  --status-accent: #b89cff;
+  --dropdown-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aa8bff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  --bg: #080b22;
+  --panel: rgba(17, 14, 45, .94);
+  --panel-card: rgba(20, 15, 49, .95);
+  --text-main: #e9e6fb;
+  --text-dim: #aca5c9;
+  --text-cyan: #aa8bff;
+  --theme-accent: #aa8bff;
+  --theme-accent-bright: #d0c0ff;
+  --theme-accent-dark: #7954d9;
+  --theme-accent-bg: rgba(170, 139, 255, .14);
+  --theme-accent-glow: rgba(170, 139, 255, .4);
+  --navy-card: rgba(20, 15, 49, .95);
+  --navy-border: rgba(170, 139, 255, .3);
+  color: #eeeafa;
+  background: #080b22 !important;
+  font-family: 'Chakra Petch', 'Noto Sans', sans-serif;
+}
+
+body.theme-hether #bg-fallback {
+  background: radial-gradient(ellipse at 59% 44%, #243570 0%, #141641 31%, #090b22 72%);
+}
+body.theme-hether .bg-video { opacity: 0; }
+body.theme-hether .bg-video.active,
+body.theme-hether .bg-video.fade-in-top { opacity: .72; }
+body.theme-hether #bg-overlay {
+  background: linear-gradient(180deg, rgba(4, 5, 22, .08), transparent 32%, rgba(4, 5, 22, .38));
+}
+
+body.theme-hether #topbar {
+  height: 72px;
+  padding: 0 22px;
+  background: linear-gradient(#07091fcf, #080a20aa);
+  border-bottom: 1px solid rgba(170, 139, 255, .2);
+  backdrop-filter: none;
+}
+body.theme-hether #topbar::after { background: linear-gradient(90deg, transparent, #8262db88, transparent); }
+body.theme-hether .cyber-logo-area { width: 112px; }
+body.theme-hether .cyber-logo-img { height: 43px; filter: drop-shadow(0 0 9px #8062dbaa); }
+body.theme-hether .cyber-ver-tag { display: none; }
+body.theme-hether .cyber-top-controls { gap: 8px; }
+body.theme-hether #cyber-btn-game-files {
+  color: #c8b8f4;
+  border-color: #735ab26b;
+  background: #171330bb;
+  height: 32px;
+}
+body.theme-hether .cyber-topbar-divider { display: none; }
+body.theme-hether #window-controls .wctrl { color: #b3a8d0; }
+body.theme-hether #game-switch-trigger,
+body.theme-hether #help-trigger { border-color: #765bb68c; color: #e6dcff; }
+body.theme-hether .game-select-wrap {
+  --switch-surface: #171330;
+  width: 205px;
+  border-color: #765bb68c;
+  background: #171330dd;
+}
+
+body.theme-hether #cyber-sidebar {
+  position: fixed;
+  top: 0;
+  left: 150px;
+  right: 455px;
+  bottom: auto;
+  width: auto;
+  height: 72px;
+  z-index: 101;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  backdrop-filter: none;
+  justify-content: center;
+}
+body.theme-hether .cyber-sidebar-nav-group { flex-direction: row; justify-content: center; gap: 6px; }
+body.theme-hether #cyber-sidebar .sb-icon {
+  width: auto;
+  min-width: 88px;
+  height: 38px;
+  padding: 0 13px;
+  gap: 7px;
+  color: #b4adc9;
+  border-radius: 8px;
+  font: 700 11px 'Chakra Petch', sans-serif;
+  letter-spacing: .04em;
+}
+body.theme-hether #cyber-sidebar .sb-icon svg { display: none; }
+body.theme-hether #cyber-sidebar .sb-icon::after { display: none; }
+body.theme-hether #cyber-sidebar .sb-icon.active {
+  color: #fff;
+  background: linear-gradient(#9472eb, #6949c7);
+  border-color: #ad94f3;
+  box-shadow: 0 0 17px #684ac688;
+}
+body.theme-hether #cyber-sidebar .sb-icon:hover { color: #fff; }
+
+body.theme-hether #cyber-home { top: 72px; left: 0; background: transparent; }
+body.theme-hether .cyber-grid-overlay { display: none; }
+body.theme-hether .cyber-glow-blob,
+body.theme-hether .cyber-scanline,
+body.theme-hether .cyber-corner-tr,
+body.theme-hether .cyber-corner-bl { display: none; }
+body.theme-hether .cyber-main-body { padding: 24px; }
+body.theme-hether .cyber-news-card {
+  position: fixed;
+  left: 24px;
+  bottom: 104px;
+  width: 306px;
+  max-height: min(310px, 43vh);
+  padding: 16px 18px;
+  border: 1px solid #8065bc82;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #1d153deF, #0b0d28f5);
+  box-shadow: 0 24px 45px #03041666;
+  backdrop-filter: none;
+}
+body.theme-hether .cyber-news-card::before,
+body.theme-hether .cyber-news-card::after { display: none; }
+body.theme-hether .cyber-news-header { gap: 7px; flex-wrap: wrap; align-items: center; }
+body.theme-hether .cyber-news-title {
+  font-size: 11px;
+  color: #eee9ff;
+  letter-spacing: .04em;
+  text-shadow: none;
+}
+body.theme-hether .glitch-text,
+body.theme-hether .glitch-text::before,
+body.theme-hether .glitch-text::after { animation: none; }
+body.theme-hether .glitch-text::before,
+body.theme-hether .glitch-text::after { display: none; }
+body.theme-hether .cyber-news-badge {
+  background: #7654d9;
+  border: 0;
+  color: white;
+  border-radius: 12px;
+}
+body.theme-hether .cyber-news-date {
+  flex-basis: 100%;
+  margin: -3px 0 0;
+  color: #c3b7dc;
+  text-align: left;
+}
+body.theme-hether .cyber-news-body {
+  max-height: min(214px, 30vh);
+  color: #d1cae3;
+  font-size: 12px;
+  line-height: 1.8;
+}
+body.theme-hether .cyber-news-divider { background: linear-gradient(90deg, #a98aff88, transparent); }
+
+body.theme-hether #cyber-music-pod {
+  position: fixed;
+  z-index: 55;
+  left: 24px;
+  bottom: 24px;
+  width: 306px;
+  height: 64px;
+  padding: 9px 14px;
+  gap: 12px;
+  border: 1px solid #8065bc82;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1d153def, #0b0d28f5);
+  box-shadow: 0 20px 40px #02031866;
+}
+body.theme-hether #cyber-music-pod::before {
+  content: '♫';
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  height: 40px;
+  color: #cbb7ff;
+  font-size: 21px;
+  border: 2px solid #795bca;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #805bd055;
+}
+body.theme-hether .cyber-music-btn {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccb7ff;
+  border-radius: 50%;
+  background: #825dde;
+  color: #fff;
+}
+body.theme-hether .cyber-vol-wrap { flex: 1; min-width: 0; gap: 8px; }
+body.theme-hether .cyber-vol-wrap svg { flex: 0 0 12px; }
+body.theme-hether .cyber-volume-slider { flex: 1; min-width: 0; width: 100%; background: #423967; }
+body.theme-hether .cyber-volume-slider::-webkit-slider-thumb { background: #c7adff; }
+body.theme-hether.tab-perf #cyber-music-pod,
+body.theme-hether.tab-font #cyber-music-pod,
+body.theme-hether.tab-theme #cyber-music-pod { display: none; }
+
+body.theme-hether .cyber-action-bar {
+  width: 356px;
+  margin: 0 24px 24px auto;
+  padding: 12px;
+  border: 1px solid #8065bc82;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #1d153def, #0b0d28f5);
+  backdrop-filter: none;
+}
+body.theme-hether .cyber-action-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: auto 52px;
+  gap: 10px;
+}
+body.theme-hether .cyber-meta-group {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  min-width: 0;
+  gap: 8px;
+  color: #c5b8e4;
+}
+body.theme-hether .cyber-meta-divider { display: none; }
+body.theme-hether .cyber-launcher-ver-tag { margin-left: auto; }
+body.theme-hether .cyber-status-text { min-width: 0; overflow: hidden; white-space: nowrap; }
+body.theme-hether #cyber-game-size-label { overflow: hidden; text-overflow: ellipsis; }
+body.theme-hether .cyber-platform-badge,
+body.theme-hether .cyber-menu-btn {
+  color: #c4b1f6;
+  border-color: #785cb78a;
+  background: #171231dd;
+}
+body.theme-hether .cyber-menu-btn { grid-column: 1; grid-row: 2; width: 44px; height: 52px; }
+body.theme-hether .play-btn-neon {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  width: 100%;
+  height: 52px;
+  color: white;
+  border: 3px solid #cbbaff;
+  border-radius: 10px;
+  background: linear-gradient(#9677eb, #6545c5);
+  box-shadow: inset 0 0 0 2px #7756d4, 0 0 18px #7855d599;
+  animation: none;
+}
+body.theme-hether .play-btn-neon:hover { background: linear-gradient(#a88ef4, #7858dc); }
+body.theme-hether .play-btn-neon.running { background: #51417e; }
+body.theme-hether .play-btn-text,
+body.theme-hether .play-btn-icon { color: #fff; text-shadow: none; }
+body.theme-hether .cyber-progress-box {
+  padding: 10px;
+  border: 1px solid #8065bc82;
+  border-radius: 8px;
+  background: #12102fdd;
+}
+
+body.theme-hether #perf-page,
+body.theme-hether #font-page,
+body.theme-hether #theme-page { top: 72px; left: 0; }
+body.theme-hether #perf-page .perf-container,
+body.theme-hether #modern-font-view,
+body.theme-hether #theme-page .theme-page-container {
+  border-color: #8367c3 !important;
+  background: #151331f2 !important;
+  box-shadow: 0 20px 55px #030316aa !important;
+}
+body.theme-hether #theme-page .theme-card.active { border-color: #aa8bff; }
+body.theme-hether #perf-page .perf-main-title,
+body.theme-hether #font-page .modern-font-main-title,
+body.theme-hether #theme-page .theme-page-title { color: #f5f0ff !important; text-shadow: none; }
+body.theme-hether #perf-page .perf-action-btn,
+body.theme-hether #font-page .btn-modern-install,
+body.theme-hether #theme-page .theme-apply-btn,
+body.theme-hether #theme-page .theme-badge-active {
+  border-color: #a98aff !important;
+  background: #7252c8 !important;
+  color: #fff !important;
+  box-shadow: 0 0 15px #7252c866 !important;
+}
+body.theme-hether #ctx-menu { border-color: #8065bc; background: #17132f; }
+body.theme-hether .ctx-item:hover { background: #7053b144; color: #e8dcff; }
+body.theme-hether #toast-container {
+  --toast-bg: rgba(17, 14, 44, .98);
+  --toast-border: rgba(170, 139, 255, .5);
+  --toast-text: #f1ebff;
+  --toast-accent: #baa1ff;
+}
+body.theme-hether .toast {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .6), 0 0 14px rgba(170, 139, 255, .16);
+}
+
+@media (max-width: 1000px) {
+  body.theme-hether #cyber-sidebar { left: 100px; right: 335px; }
+  body.theme-hether #cyber-sidebar .sb-icon { min-width: 0; padding: 0 7px; font-size: 9px; }
+  body.theme-hether .cyber-top-controls #cyber-btn-game-files { display: none; }
+  body.theme-hether .cyber-action-bar { width: 320px; }
+}
+@media (max-width: 720px) {
+  body.theme-hether #topbar { height: 104px; align-items: flex-start; padding-top: 9px; }
+  body.theme-hether #cyber-sidebar { top: 56px; left: 8px; right: 8px; height: 42px; }
+  body.theme-hether .cyber-top-controls { display: none !important; }
+  body.theme-hether #cyber-home { top: 104px; }
+  body.theme-hether .cyber-news-card { left: 16px; bottom: 100px; width: min(340px, calc(100% - 32px)); }
+  body.theme-hether #cyber-music-pod { left: 16px; bottom: 16px; width: 210px; height: 68px; gap: 10px; }
+  body.theme-hether #cyber-music-pod::before { flex-basis: 34px; height: 34px; font-size: 18px; }
+  body.theme-hether .cyber-action-bar { width: 240px; margin: 0 16px 16px auto; }
+  body.theme-hether .play-btn-neon { padding: 0 10px; }
+  body.theme-hether .cyber-status-text { display: none; }
+  body.theme-hether .play-btn-text { font-size: 11px; }
+  body.theme-hether #perf-page,
+  body.theme-hether #font-page,
+  body.theme-hether #theme-page { top: 104px; }
+}
+
+@media (max-width: 520px) {
+  body.theme-hether .game-select-wrap { width: 155px; }
+  body.theme-hether #cyber-sidebar .sb-icon { padding: 0 4px; font-size: 8px; }
+  body.theme-hether .cyber-news-card { bottom: 198px; max-height: 32vh; }
+  body.theme-hether #cyber-music-pod { bottom: 114px; width: calc(100% - 32px); }
+  body.theme-hether .cyber-action-bar { width: calc(100% - 32px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.theme-hether .play-btn-neon,
+  body.theme-hether .sb-icon { animation: none; transition: none; }
+}
