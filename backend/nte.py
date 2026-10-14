@@ -552,5 +552,4 @@ def get_status() -> dict:
         "launcher_info": get_launcher_info(),
         "theme": get_theme(),
         "use_dx11": False,
-        "use_csharp_env": False,
     }

@@ -209,14 +209,6 @@ class IPC:
                 enabled = data.get("enabled", True)
                 return wuwa_game.set_dx11_mode(enabled)
 
-            # ── CSharp Environment Mode ───────────────────────────
-            case "get_csharp_env_mode":
-                return {"use_csharp_env": wuwa_game.get_csharp_env_mode()}
-
-            case "set_csharp_env_mode":
-                enabled = data.get("enabled", True)
-                return wuwa_game.set_csharp_env_mode(enabled)
-
             # ── Wine DLL Overrides (WINEOVERDRIVE) ────────────────
             case "install_wine_overrides" | "install_wine_overdrive":
                 return game_context.install_wine_dll_overrides()

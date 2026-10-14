@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 import unittest
 from unittest import mock
@@ -49,6 +50,48 @@ class WuwaInstallationTests(unittest.TestCase):
             status = wuwa_game.get_status()
         self.assertFalse(status["installed_vh"])
         self.assertEqual(status["installed_paks"], [])
+
+    def test_heroic_sync_removes_legacy_csharp_flag(self):
+        heroic_root = os.path.join(self.temp.name, "heroic")
+        games_dir = os.path.join(heroic_root, "GamesConfig")
+        os.makedirs(games_dir)
+        config_path = os.path.join(games_dir, "wuwa.json")
+        with open(config_path, "w", encoding="utf-8") as output:
+            json.dump({
+                "wuwa": {"launcherArgs": "--foo -ForceEnableCSharpEnvironment --bar"},
+                "other-game": {"launcherArgs": "-ForceEnableCSharpEnvironment"},
+            }, output)
+
+        original_expanduser = os.path.expanduser
+        def heroic_path(path):
+            if path == "~/.config/heroic":
+                return heroic_root
+            if path == "~/.var/app/com.heroicgameslauncher.hgl/config/heroic":
+                return os.path.join(self.temp.name, "missing-heroic")
+            return original_expanduser(path)
+
+        with mock.patch.object(wuwa_game.os.path, "expanduser", side_effect=heroic_path), mock.patch.object(
+            wuwa_game, "get_dx11_mode", return_value=False
+        ), mock.patch.object(wuwa_game, "get_required_dll_overrides", return_value="winhttp=n,b"), mock.patch.object(
+            wuwa_game, "detect_heroic_game", return_value={"app_name": "wuwa"}
+        ):
+            wuwa_game.optimize_heroic_config()
+
+        with open(config_path, encoding="utf-8") as source:
+            config = json.load(source)
+        self.assertEqual(config["wuwa"]["launcherArgs"], "--foo --bar")
+        self.assertEqual(config["other-game"]["launcherArgs"], "-ForceEnableCSharpEnvironment")
+
+    def test_steam_launch_ignores_saved_csharp_setting(self):
+        wuwa_game.save_config({"use_csharp_env": True})
+        with mock.patch.object(wuwa_game, "get_launcher_info", return_value={"current": "steam"}), mock.patch.object(
+            wuwa_game, "get_game_exe", return_value="/games/Wuwa/Client-Win64-Shipping.exe"
+        ), mock.patch.object(wuwa_game, "fix_steam_launch_options"), mock.patch.object(
+            wuwa_game.subprocess, "Popen"
+        ) as popen:
+            self.assertTrue(wuwa_game.launch_game())
+
+        self.assertEqual(popen.call_args.args[0], ["steam", "-silent", "-applaunch", wuwa_game.STEAM_APP_ID, "-dx11"])
 
     def test_failed_copy_preserves_installed_pak(self):
         name = "WuWaVH_99_P.pak"

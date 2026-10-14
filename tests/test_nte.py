@@ -117,7 +117,7 @@ class NteTests(unittest.TestCase):
         self.assertEqual(status["game"], "nte")
         self.assertTrue(status["has_game"])
         self.assertEqual(status["theme"], "cyber")
-        self.assertFalse(status["use_csharp_env"])
+        self.assertNotIn("use_csharp_env", status)
 
     def test_launch_uses_wine_for_official_launcher(self):
         from backend import nte

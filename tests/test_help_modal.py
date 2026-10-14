@@ -42,7 +42,8 @@ class HelpTourTests(unittest.TestCase):
             const localStorage = {{getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value)}};
             const sidebarDrawer = {{classList: {{contains: () => false}}}};
             const ctxMenu = {{getBoundingClientRect: () => ({{left: 870, right: 1150}})}};
-            const currentThemeId = 'classic';
+            let currentThemeId = 'classic', activeGameId = 'wuwa';
+            const usesNteControls = theme => theme === 'cyber' || theme === 'hether';
             const setGameSwitchOpen = () => {{}};
             const setModernDrawerOpen = () => {{}};
             const switchTab = tab => currentTab = tab;
@@ -66,6 +67,12 @@ class HelpTourTests(unittest.TestCase):
             assert.equal(menus.at(-1), true);
             assert.equal(document.getElementById('help-spotlight').hidden, false);
             assert(Number.parseFloat(card.style.left) < ctxMenu.getBoundingClientRect().left);
+            next.handlers.click();
+            next.handlers.click();
+            assert.equal(document.getElementById('help-title').textContent, 'DirectX 11 (DXVK)');
+            assert.equal(document.getElementById('help-counter').textContent, '6 / 9');
+            assert.equal(helpTargetFor(tourSteps[5]).id, 'ctx-dx11');
+            assert.equal(menus.at(-1), true);
             document.getElementById('help-skip').handlers.click();
             assert.equal(tour.hidden, true);
             assert.equal(menus.at(-1), false);
@@ -74,6 +81,13 @@ class HelpTourTests(unittest.TestCase):
             assert.equal(tour.hidden, true);
             document.getElementById('help-trigger').handlers.click();
             assert.equal(tour.hidden, false);
+            document.getElementById('help-skip').handlers.click();
+            activeGameId = 'nte';
+            currentThemeId = 'cyber';
+            document.getElementById('help-trigger').handlers.click();
+            for (let i = 0; i < 5; i++) next.handlers.click();
+            assert.equal(document.getElementById('help-title').textContent, 'Bật Việt hoá trong Wine/Proton');
+            assert.equal(document.getElementById('help-counter').textContent, '6 / 8');
         """
         result = subprocess.run(["node", "-e", script], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)

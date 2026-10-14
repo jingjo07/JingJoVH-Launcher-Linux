@@ -365,24 +365,6 @@
 
       <!-- Right Column: Launch Options & Master Gold Action Core -->
       <div id="action-area" class="classic-action-column">
-        <!-- Classic Launch Options Bar -->
-        <div class="launch-options-bar classic-bar" id="launch-options-classic">
-          <div class="launch-toggle-card active" id="toggle-dx11-classic"
-            title="Chạy DirectX 11 (DXVK) ổn định, chống crash Fatal Error trên Linux">
-            <div class="toggle-switch-pill">
-              <div class="toggle-thumb"></div>
-            </div>
-            <span class="toggle-label">DirectX 11</span>
-          </div>
-          <div class="launch-toggle-card active" id="toggle-csharp-classic"
-            title="Bật môi trường C# (-ForceEnableCSharpEnvironment)">
-            <div class="toggle-switch-pill">
-              <div class="toggle-thumb"></div>
-            </div>
-            <span class="toggle-label">CSharp</span>
-          </div>
-        </div>
-
         <!-- Progress bar when updating / downloading -->
         <div class="classic-progress-box" id="classic-launch-progress" style="display: none;">
           <div class="classic-progress-meta">
@@ -455,25 +437,6 @@
           </div>
         </div>
 
-        <!-- Launch Options Bar (DirectX 11 + CSharp Environment) -->
-        <div class="modern-config-heading"><span>THIẾT LẬP KHỞI CHẠY</span><span>Tùy chọn nhanh</span></div>
-        <div class="launch-options-bar" id="launch-options-modern">
-          <div class="launch-toggle-card active" id="toggle-dx11-modern" role="switch" tabindex="0" aria-checked="true" aria-label="DirectX 11"
-            title="Chạy DirectX 11 (DXVK) ổn định, chống crash Fatal Error trên Linux">
-            <div class="toggle-switch-pill">
-              <div class="toggle-thumb"></div>
-            </div>
-            <span class="toggle-label">DirectX 11</span>
-          </div>
-          <div class="launch-toggle-card active" id="toggle-csharp-modern" role="switch" tabindex="0" aria-checked="true" aria-label="Môi trường CSharp"
-            title="Bật môi trường C# (-ForceEnableCSharpEnvironment)">
-            <div class="toggle-switch-pill">
-              <div class="toggle-thumb"></div>
-            </div>
-            <span class="toggle-label">CSharp</span>
-          </div>
-        </div>
-
         <!-- Progress bar when updating / downloading -->
         <div class="modern-progress-box" id="modern-launch-progress" style="display: none;">
           <div class="modern-progress-meta">
@@ -528,7 +491,7 @@
       <div class="cyber-corner-tr"></div>
       <div class="cyber-corner-bl"></div>
 
-      <!-- Center Main Body (News Card + Launch Config Card) -->
+      <!-- Center Main Body -->
       <div class="cyber-main-body">
         <!-- News Card -->
         <div class="cyber-news-card holo-card corner-tl corner-br">
@@ -547,23 +510,6 @@
           </div>
         </div>
 
-        <!-- Launch Config Card -->
-        <div class="cyber-config-card holo-card">
-          <div class="cyber-config-label">CẤU HÌNH</div>
-          <div class="cyber-toggle-row active" id="toggle-dx11-cyber" role="switch" tabindex="0" aria-checked="true" aria-label="DirectX 11" title="Chạy DirectX 11 (DXVK) ổn định, chống crash">
-            <span class="cyber-toggle-title">DirectX 11</span>
-            <div class="neon-toggle on">
-              <div class="knob"></div>
-            </div>
-          </div>
-          <div class="cyber-toggle-divider"></div>
-          <div class="cyber-toggle-row active" id="toggle-csharp-cyber" role="switch" tabindex="0" aria-checked="true" aria-label="Môi trường CSharp" title="Bật môi trường C# (-ForceEnableCSharpEnvironment)">
-            <span class="cyber-toggle-title">CSharp Mode</span>
-            <div class="neon-toggle on">
-              <div class="knob"></div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Bottom Action Bar -->
@@ -640,6 +586,9 @@
         <div class="ctx-group-title" id="ctx-group-game">Trò chơi</div>
         <button type="button" class="ctx-item" id="ctx-game-paths" role="menuitem">
           <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v2"/></svg></span><span>Cấu hình đường dẫn</span>
+        </button>
+        <button type="button" class="ctx-item" id="ctx-dx11" role="menuitemcheckbox" aria-checked="true" title="Chạy Wuthering Waves bằng DirectX 11 (DXVK)">
+          <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 12h10"/></svg></span><span>DirectX 11</span><span class="ctx-dx11-unavailable">NTE chưa hỗ trợ</span><span class="ctx-dx11-state" aria-hidden="true">BẬT</span>
         </button>
         <button type="button" class="ctx-item" id="ctx-winedlloverrides" role="menuitem">
           <span class="ctx-icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4M7 9h10M7 13h5"/></svg></span><span>Cài WINEDLLOVERRIDES</span>

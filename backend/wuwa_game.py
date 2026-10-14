@@ -590,7 +590,7 @@ def optimize_heroic_config():
         os.path.expanduser("~/.var/app/com.heroicgameslauncher.hgl/config/heroic"),
     ]
     use_dx11 = get_dx11_mode()
-    use_csharp = get_csharp_env_mode()
+    heroic_app_name = (detect_heroic_game() or {}).get("app_name")
     target_overrides = get_required_dll_overrides()
 
     for root in heroic_config_roots:
@@ -642,7 +642,7 @@ def optimize_heroic_config():
                             app_cfg["autoInstallDxvk"] = True
                             changed = True
 
-                        # 2.3 Đồng bộ -dx11 & -ForceEnableCSharpEnvironment trong launcherArgs
+                        # 2.3 Đồng bộ -dx11 và dọn tham số CSharp cũ của WuWa trong launcherArgs
                         cur_args = app_cfg.get("launcherArgs", "")
                         args_list = cur_args.split() if cur_args else []
 
@@ -660,16 +660,9 @@ def optimize_heroic_config():
                                 args_list.remove("-d3d11")
                                 changed = True
 
-                        # CSharp Environment toggle
-                        if use_csharp:
-                            if "-ForceEnableCSharpEnvironment" not in args_list:
-                                args_list.append("-ForceEnableCSharpEnvironment")
-                                changed = True
-                                print(f"[Heroic Fix] Đã thêm -ForceEnableCSharpEnvironment vào launcherArgs trong {conf_file}")
-                        else:
-                            if "-ForceEnableCSharpEnvironment" in args_list:
-                                args_list.remove("-ForceEnableCSharpEnvironment")
-                                changed = True
+                        if app_key == heroic_app_name and "-ForceEnableCSharpEnvironment" in args_list:
+                            args_list = [arg for arg in args_list if arg != "-ForceEnableCSharpEnvironment"]
+                            changed = True
 
                         if changed:
                             app_cfg["launcherArgs"] = " ".join(args_list)
@@ -987,8 +980,6 @@ def launch_game() -> bool:
     steam_cmd = ["steam", "-silent", "-applaunch", STEAM_APP_ID]
     if get_dx11_mode():
         steam_cmd.append("-dx11")
-    if get_csharp_env_mode():
-        steam_cmd.append("-ForceEnableCSharpEnvironment")
 
     print(f"[Launch] {' '.join(steam_cmd)}")
     try:
@@ -1208,21 +1199,6 @@ def set_dx11_mode(enabled: bool) -> dict:
     return {"use_dx11": cfg["use_dx11"]}
 
 
-def get_csharp_env_mode() -> bool:
-    """Return whether ForceEnableCSharpEnvironment mode is enabled."""
-    cfg = load_config()
-    return cfg.get("use_csharp_env", True)
-
-
-def set_csharp_env_mode(enabled: bool) -> dict:
-    """Set ForceEnableCSharpEnvironment mode in config and sync to Heroic config."""
-    cfg = load_config()
-    cfg["use_csharp_env"] = bool(enabled)
-    save_config(cfg)
-    optimize_heroic_config()
-    return {"use_csharp_env": cfg["use_csharp_env"]}
-
-
 def get_status() -> dict:
     """Return current status as dict for frontend."""
     game_path = detect_game_path()
@@ -1246,7 +1222,6 @@ def get_status() -> dict:
         "launcher_info":  get_launcher_info(),
         "theme":          get_theme(),
         "use_dx11":       get_dx11_mode(),
-        "use_csharp_env": get_csharp_env_mode(),
     }
 
 

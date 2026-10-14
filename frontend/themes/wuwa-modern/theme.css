@@ -7,6 +7,12 @@
   --mint-mid: #14b8a6;
   --mint-dark: #0f766e;
   --mint-glow: rgba(45, 212, 191, 0.35);
+  --theme-accent: var(--mint-bright);
+  --theme-accent-bright: #5eead4;
+  --theme-accent-dark: var(--mint-dark);
+  --theme-accent-bg: rgba(45, 212, 191, 0.12);
+  --theme-accent-glow: var(--mint-glow);
+  --theme-accent-btn-text: #042f2e;
   --navy-card: rgba(10, 16, 26, 0.85);
   --navy-border: rgba(45, 212, 191, 0.22);
 }

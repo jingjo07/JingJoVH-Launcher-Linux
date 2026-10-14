@@ -438,41 +438,7 @@ body.theme-dangdev .modern-hero-stack {
 }
 
 body.theme-dangdev #launch-options-modern {
-  min-height: 48px;
-  padding: 5px 10px;
-  border: 1px solid rgba(214, 186, 141, .66);
-  border-radius: 5px;
-  background: rgba(22, 19, 17, .91);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, .36);
-}
-
-body.theme-dangdev .launch-toggle-card {
-  color: #e6d4b8;
-  font-size: 12px;
-}
-
-body.theme-dangdev .launch-toggle-card .toggle-switch-pill {
-  background: #302820;
-  border: 1px solid #9d7b50;
-  box-shadow: none;
-}
-
-body.theme-dangdev .launch-toggle-card .toggle-thumb {
-  background: #dbcaab;
-}
-
-body.theme-dangdev .launch-toggle-card.active .toggle-switch-pill {
-  background: #963d2c;
-  border-color: #dbb27c;
-  box-shadow: 0 0 9px rgba(150, 61, 44, .35);
-}
-
-body.theme-dangdev .launch-toggle-card.active .toggle-thumb {
-  background: #fff4e4;
-}
-
-body.theme-dangdev .launch-toggle-card.active .toggle-label {
-  color: #f4dfb7;
+  display: none;
 }
 
 body.theme-dangdev .modern-action-row {

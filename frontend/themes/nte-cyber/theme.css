@@ -731,11 +731,6 @@ body.theme-cyber:not(.theme-hether) #cyber-sidebar .sb-icon span {
   text-shadow: 0 0 8px rgba(var(--cyan-rgb), 0.5);
 }
 
-.cyber-toggle-divider {
-  height: 1px;
-  background: rgba(var(--cyan-rgb), 0.08);
-}
-
 /* Neon Toggle Switch */
 .neon-toggle {
   width: 44px;

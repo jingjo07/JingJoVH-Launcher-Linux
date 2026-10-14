@@ -285,7 +285,6 @@ async function loadVersion() {
 let gameStatus = {};
 let launcherInfo = { current: "steam" };
 let isDx11Enabled = true;
-let isCSharpEnvEnabled = true;
 let activeGameId = "wuwa";
 const gameSelect = document.getElementById("game-select");
 const gameSwitchTrigger = document.getElementById("game-switch-trigger");
@@ -302,33 +301,14 @@ function setGameSwitchOpen(open) {
 }
 
 function updateLaunchOptionsUI() {
-  const dx11Modern = document.getElementById("toggle-dx11-modern");
-  const dx11Classic = document.getElementById("toggle-dx11-classic");
-  const dx11Cyber = document.getElementById("toggle-dx11-cyber");
-
-  const csharpModern = document.getElementById("toggle-csharp-modern");
-  const csharpClassic = document.getElementById("toggle-csharp-classic");
-  const csharpCyber = document.getElementById("toggle-csharp-cyber");
-
-  if (dx11Modern) dx11Modern.classList.toggle("active", isDx11Enabled);
-  if (dx11Modern) dx11Modern.setAttribute("aria-checked", String(isDx11Enabled));
-  if (dx11Classic) dx11Classic.classList.toggle("active", isDx11Enabled);
-  if (dx11Cyber) {
-    dx11Cyber.classList.toggle("active", isDx11Enabled);
-    dx11Cyber.setAttribute("aria-checked", String(isDx11Enabled));
-    const knob = dx11Cyber.querySelector(".neon-toggle");
-    if (knob) knob.classList.toggle("on", isDx11Enabled);
-  }
-
-  if (csharpModern) csharpModern.classList.toggle("active", isCSharpEnvEnabled);
-  if (csharpModern) csharpModern.setAttribute("aria-checked", String(isCSharpEnvEnabled));
-  if (csharpClassic) csharpClassic.classList.toggle("active", isCSharpEnvEnabled);
-  if (csharpCyber) {
-    csharpCyber.classList.toggle("active", isCSharpEnvEnabled);
-    csharpCyber.setAttribute("aria-checked", String(isCSharpEnvEnabled));
-    const knob = csharpCyber.querySelector(".neon-toggle");
-    if (knob) knob.classList.toggle("on", isCSharpEnvEnabled);
-  }
+  const dx11Menu = document.getElementById("ctx-dx11");
+  if (!dx11Menu) return;
+  dx11Menu.disabled = activeGameId !== "wuwa";
+  dx11Menu.setAttribute("aria-checked", String(!dx11Menu.disabled && isDx11Enabled));
+  dx11Menu.querySelector(".ctx-dx11-state").textContent = isDx11Enabled ? "BẬT" : "TẮT";
+  dx11Menu.title = dx11Menu.disabled
+    ? "NTE chưa hỗ trợ DirectX 11 từ launcher"
+    : "Chạy Wuthering Waves bằng DirectX 11 (DXVK)";
 }
 
 async function toggleDx11(e) {
@@ -349,24 +329,6 @@ async function toggleDx11(e) {
   }
 }
 
-async function toggleCSharpEnv(e) {
-  if (e) e.stopPropagation();
-  if (activeGameId !== "wuwa") return;
-  const previous = isCSharpEnvEnabled;
-  isCSharpEnvEnabled = !isCSharpEnvEnabled;
-  updateLaunchOptionsUI();
-  try {
-    const res = await ipc("set_csharp_env_mode", { enabled: isCSharpEnvEnabled });
-    if (res.use_csharp_env !== undefined) isCSharpEnvEnabled = Boolean(res.use_csharp_env);
-    updateLaunchOptionsUI();
-    toast(isCSharpEnvEnabled ? "Đã bật CSharp (-ForceEnableCSharpEnvironment)" : "Đã tắt CSharp", "success");
-  } catch (err) {
-    isCSharpEnvEnabled = previous;
-    updateLaunchOptionsUI();
-    toast(`Lỗi đổi CSharp: ${err.message}`, "error");
-  }
-}
-
 async function refreshStatus() {
   const requestedGame = activeGameId;
   try {
@@ -378,9 +340,6 @@ async function refreshStatus() {
     }
     if (gameStatus.use_dx11 !== undefined) {
       isDx11Enabled = Boolean(gameStatus.use_dx11);
-    }
-    if (gameStatus.use_csharp_env !== undefined) {
-      isCSharpEnvEnabled = Boolean(gameStatus.use_csharp_env);
     }
     updateLaunchOptionsUI();
     updatePlayBtn();
@@ -2085,6 +2044,7 @@ function applyGameUI(gameId, resumeMedia = false) {
 
   applyTheme(nte ? savedNteTheme : savedWuwaTheme, false);
   if (currentTab === "theme") renderThemeList();
+  updateLaunchOptionsUI();
   updateLauncherBadge();
 }
 
@@ -2347,10 +2307,12 @@ const helpSteps = [
   { target: "menu", title: "Mở tùy chọn nhanh", description: "Menu này có các thao tác cập nhật Việt hoá, cấu hình đường dẫn game và cài WINEDLLOVERRIDES." },
   { target: "ctx-update", menu: true, title: "Cài hoặc cập nhật Việt hoá", description: "Chọn Cập nhật Việt Hoá để tải và cài bản dịch mới nhất. Hãy chờ thanh tiến trình hoàn tất trước khi chơi." },
   { target: "ctx-game-paths", menu: true, title: "Cấu hình đường dẫn game", description: "Launcher tự tìm thư mục game. Nếu chưa nhận diện được, chọn Cấu hình đường dẫn để chỉ đến thư mục cài đặt; NTE có thể cần thêm Wine/Proton prefix." },
+  { target: "ctx-dx11", menu: true, wuwaOnly: true, title: "DirectX 11 (DXVK)", description: "Bật nếu Wuthering Waves gặp lỗi hoặc chạy không ổn định với DirectX 12. Tắt để dùng chế độ mặc định của game. Tùy chọn này chỉ áp dụng cho WuWa." },
   { target: "ctx-winedlloverrides", menu: true, title: "Bật Việt hoá trong Wine/Proton", description: "Chọn Cài WINEDLLOVERRIDES để game nạp winhttp.dll. Thao tác này cần thiết nếu vào game mà chưa thấy bản dịch." },
   { target: "launcher", title: "Chọn trình khởi chạy", description: "Nhấn tên trình khởi chạy để chọn Steam, Heroic hoặc NTE Launcher tùy game và bản cài trên máy." },
   { target: "play", title: "Bắt đầu chơi", description: "Sau khi cài Việt hoá, nhấn Chơi game. Bạn cũng có thể dùng các mục Hiệu năng, Font và Theme để tùy chỉnh thêm." },
 ];
+let tourSteps = helpSteps;
 let helpStepIndex = 0;
 let helpPreviousTab = "home";
 
@@ -2373,7 +2335,7 @@ function setHelpRect(element, x, y, width, height) {
 
 function placeHelpTour() {
   if (helpTour.hidden) return;
-  const target = helpTargetFor(helpSteps[helpStepIndex]);
+  const target = helpTargetFor(tourSteps[helpStepIndex]);
   const rect = target && target.getClientRects().length ? target.getBoundingClientRect() : null;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -2393,7 +2355,7 @@ function placeHelpTour() {
   let cardY = (vh - cardHeight) / 2;
   if (rect) {
     cardX = Math.min(Math.max(16, x), vw - cardWidth - 16);
-    if (helpSteps[helpStepIndex].menu && ctxMenu) {
+    if (tourSteps[helpStepIndex].menu && ctxMenu) {
       const menuRect = ctxMenu.getBoundingClientRect();
       if (menuRect.left >= cardWidth + 32) cardX = menuRect.left - cardWidth - 16;
       else if (vw - menuRect.right >= cardWidth + 32) cardX = menuRect.right + 16;
@@ -2412,14 +2374,14 @@ function placeHelpTour() {
 
 function showHelpStep(index) {
   helpStepIndex = index;
-  const step = helpSteps[index];
+  const step = tourSteps[index];
   toggleMenu(Boolean(step.menu));
   document.getElementById("help-title").textContent = step.title;
   document.getElementById("help-description").textContent = step.description;
-  document.getElementById("help-counter").textContent = `${index + 1} / ${helpSteps.length}`;
-  document.getElementById("help-progress").innerHTML = helpSteps.map((_, i) => `<span class="${i <= index ? "active" : ""}"></span>`).join("");
+  document.getElementById("help-counter").textContent = `${index + 1} / ${tourSteps.length}`;
+  document.getElementById("help-progress").innerHTML = tourSteps.map((_, i) => `<span class="${i <= index ? "active" : ""}"></span>`).join("");
   helpBack.hidden = index === 0;
-  helpNext.textContent = index === helpSteps.length - 1 ? "Hoàn tất" : "Tiếp theo";
+  helpNext.textContent = index === tourSteps.length - 1 ? "Hoàn tất" : "Tiếp theo";
   placeHelpTour();
   helpNext.focus();
 }
@@ -2433,6 +2395,7 @@ function closeHelpTour() {
 }
 
 function openHelpTour() {
+  tourSteps = helpSteps.filter(step => !step.wuwaOnly || activeGameId === "wuwa");
   helpPreviousTab = currentTab;
   setGameSwitchOpen(false);
   if (currentTab !== "home") switchTab("home");
@@ -2451,7 +2414,7 @@ function showFirstRunHelp() {
 helpTrigger.addEventListener("click", openHelpTour);
 document.getElementById("help-skip").addEventListener("click", closeHelpTour);
 helpBack.addEventListener("click", () => showHelpStep(helpStepIndex - 1));
-helpNext.addEventListener("click", () => helpStepIndex === helpSteps.length - 1 ? closeHelpTour() : showHelpStep(helpStepIndex + 1));
+helpNext.addEventListener("click", () => helpStepIndex === tourSteps.length - 1 ? closeHelpTour() : showHelpStep(helpStepIndex + 1));
 helpTour.addEventListener("click", e => e.stopPropagation());
 helpTour.addEventListener("keydown", e => {
   e.stopPropagation();
@@ -2651,23 +2614,8 @@ async function init() {
   } catch { }
 
   // Launch options listeners
-  const dx11M = document.getElementById("toggle-dx11-modern");
-  if (dx11M) dx11M.onclick = toggleDx11;
-  if (dx11M) dx11M.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleDx11(e); } };
-  const dx11C = document.getElementById("toggle-dx11-classic");
-  if (dx11C) dx11C.onclick = toggleDx11;
-  const dx11Cy = document.getElementById("toggle-dx11-cyber");
-  if (dx11Cy) dx11Cy.onclick = toggleDx11;
-  if (dx11Cy) dx11Cy.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleDx11(e); } };
-
-  const csharpM = document.getElementById("toggle-csharp-modern");
-  if (csharpM) csharpM.onclick = toggleCSharpEnv;
-  if (csharpM) csharpM.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCSharpEnv(e); } };
-  const csharpC = document.getElementById("toggle-csharp-classic");
-  if (csharpC) csharpC.onclick = toggleCSharpEnv;
-  const csharpCy = document.getElementById("toggle-csharp-cyber");
-  if (csharpCy) csharpCy.onclick = toggleCSharpEnv;
-  if (csharpCy) csharpCy.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCSharpEnv(e); } };
+  const dx11Menu = document.getElementById("ctx-dx11");
+  if (dx11Menu) dx11Menu.onclick = toggleDx11;
 
   const badgeCy = document.getElementById("launcher-badge-cyber");
   if (badgeCy) badgeCy.onclick = () => openLauncherModal();

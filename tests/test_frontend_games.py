@@ -1,4 +1,5 @@
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -34,7 +35,7 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn('ipc("set_game_prefix"', app)
         self.assertIn('activeGameId !== "wuwa"', app)
         self.assertIn('body[data-game="nte"] #btn-mode-advanced', (ROOT / "frontend/style.css").read_text(encoding="utf-8"))
-        self.assertIn('body[data-game="nte"] .cyber-config-card', (ROOT / "frontend/style.css").read_text(encoding="utf-8"))
+        self.assertNotIn('id="toggle-dx11-cyber"', html)
         self.assertIn('css: "themes/nte-cyber/theme.css"', themes)
         self.assertIn('css: "themes/wuwa-dangdev/theme.css"', themes)
         self.assertTrue(nte_css.is_file())
@@ -204,8 +205,13 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn("body.theme-dangdev .launcher-tag.steam", dangdev)
         self.assertIn("body.theme-dangdev .drawer-collapse-btn", dangdev)
         quick_menu = html[html.index('id="ctx-menu"'):html.index("</div>\n\n  </div>", html.index('id="ctx-menu"'))]
-        self.assertEqual(quick_menu.count('class="ctx-icon"'), 8)
-        self.assertEqual(quick_menu.count("<svg"), 8)
+        self.assertEqual(quick_menu.count('class="ctx-icon"'), 9)
+        self.assertIn('id="ctx-dx11" role="menuitemcheckbox"', quick_menu)
+        self.assertIn('class="ctx-dx11-unavailable">NTE chưa hỗ trợ', quick_menu)
+        self.assertIn('class="ctx-dx11-state" aria-hidden="true">BẬT', quick_menu)
+        self.assertNotIn('id="toggle-dx11-', html)
+        self.assertNotIn('toggle-dx11-', app)
+        self.assertEqual(quick_menu.count("<svg"), 9)
         self.assertNotIn(">▣<", quick_menu)
         self.assertNotIn(">□<", quick_menu)
 
@@ -218,6 +224,24 @@ class FrontendGameTests(unittest.TestCase):
         self.assertIn('id="btn-modal-winedll"', html)
         self.assertIn("drawerItemWineDll", app_text)
         self.assertIn("btnModalWineDll", app_text)
+
+    def test_dx11_quick_menu_is_disabled_for_nte(self):
+        app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")
+        update = app[app.index("function updateLaunchOptionsUI() {"):app.index("async function toggleDx11(")]
+        script = "\n".join((
+            "const assert = require('node:assert/strict');",
+            "const state = {};",
+            "const menu = {setAttribute(key, value) { this[key] = value; }, querySelector: () => state};",
+            "const document = {getElementById: () => menu};",
+            "let activeGameId = 'wuwa', isDx11Enabled = true;",
+            update,
+            "updateLaunchOptionsUI(); assert.equal(menu.disabled, false); assert.equal(menu['aria-checked'], 'true'); assert.equal(state.textContent, 'BẬT');",
+            "isDx11Enabled = false; updateLaunchOptionsUI(); assert.equal(menu['aria-checked'], 'false'); assert.equal(state.textContent, 'TẮT');",
+            "activeGameId = 'nte'; updateLaunchOptionsUI(); assert.equal(menu.disabled, true); assert.equal(menu['aria-checked'], 'false');",
+            "activeGameId = 'wuwa'; isDx11Enabled = true; updateLaunchOptionsUI(); assert.equal(menu.disabled, false); assert.equal(menu['aria-checked'], 'true'); assert.equal(state.textContent, 'BẬT');",
+        ))
+        result = subprocess.run(["node", "-e", script], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_game_context_web_assets(self):
         from backend import game_context, nte
