@@ -39,6 +39,7 @@ Launcher Việt Hóa Game trên Linux (Wuthering Waves & Neverness to Everness).
     - _Thủy Mặc_: Phong cách tranh thủy mặc Trung Hoa tinh tế và khung viền cổ phong.
   - **Neverness to Everness (NTE)**:
     - _Cyber_: Giao diện viễn tưởng với ánh sáng Glitch Teal và lưới tọa độ tương lai.
+    - _Hethe_: Lấy ý tưởng từ thành phố Hethe và giao diện đời đầu của DangDev
   - Video nền và nhạc nền sống động riêng biệt theo từng tựa game.
 
 - **Tối ưu hóa hiệu năng đồ họa (Engine.ini)**:
