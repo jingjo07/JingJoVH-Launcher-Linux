@@ -111,16 +111,34 @@ class IPC:
 
             case "set_game_path":
                 path = data.get("path", "")
-                if os.path.isdir(path):
-                    game_context.set_game_path(path)
-                    return {"ok": True}
-                raise ValueError("Thư mục không hợp lệ")
+                if isinstance(path, str):
+                    path = path.strip().strip("'\"")
+                if not path:
+                    raise ValueError("Đường dẫn không được để trống")
+                expanded = os.path.realpath(os.path.expanduser(path))
+                if os.path.exists(expanded):
+                    res = game_context.set_game_path(expanded)
+                    return res if isinstance(res, dict) else {"ok": True, "path": expanded}
+                raise ValueError("Đường dẫn không tồn tại trên hệ thống")
 
             case "set_game_prefix":
                 path = data.get("path", "")
-                if os.path.isdir(path):
-                    return game_context.set_prefix_path(path)
+                if isinstance(path, str):
+                    path = path.strip().strip("'\"")
+                if not path:
+                    raise ValueError("Đường dẫn không được để trống")
+                expanded = os.path.realpath(os.path.expanduser(path))
+                if os.path.isdir(expanded):
+                    return game_context.set_prefix_path(expanded)
                 raise ValueError("Wine/Proton prefix không hợp lệ")
+
+            case "pick_game_folder":
+                path = self._pick_folder("Chọn thư mục cài đặt Game")
+                return {"path": path}
+
+            case "pick_prefix_folder":
+                path = self._pick_folder("Chọn thư mục Wine/Proton Prefix")
+                return {"path": path}
 
             case "launch_game":
                 ok = game_context.launch_game()
@@ -200,6 +218,7 @@ class IPC:
             case "set_theme":
                 theme_id = data.get("theme", "modern")
                 return game_context.set_theme(theme_id)
+
 
             # ── DirectX 11 Mode ───────────────────────────────────
             case "get_dx11_mode":
@@ -309,6 +328,31 @@ class IPC:
             af.add_pattern("*")
             dialog.add_filter(af)
 
+            response = dialog.run()
+            if response == Gtk.ResponseType.OK:
+                result[0] = dialog.get_filename()
+            dialog.destroy()
+            event.set()
+
+        GLib.idle_add(_show_dialog)
+        event.wait(timeout=120)
+        return result[0]
+
+    def _pick_folder(self, title: str = "Chọn thư mục") -> str | None:
+        """Open a GTK folder chooser dialog. Must run on main thread."""
+        result = [None]
+        event = threading.Event()
+
+        def _show_dialog():
+            dialog = Gtk.FileChooserDialog(
+                title=title,
+                parent=self.win,
+                action=Gtk.FileChooserAction.SELECT_FOLDER,
+            )
+            dialog.add_buttons(
+                Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_OPEN, Gtk.ResponseType.OK,
+            )
             response = dialog.run()
             if response == Gtk.ResponseType.OK:
                 result[0] = dialog.get_filename()

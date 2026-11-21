@@ -47,10 +47,10 @@ def get_paks_dir() -> str:
     return candidate
 
 DEFAULT_SEARCH_PATHS = [
-    "~/.steam/steam/steamapps/common/Wuthering Waves",
-    "~/Games/Wuthering Waves",
-    "~/.local/share/Steam/steamapps/common/Wuthering Waves",
-    "/opt/wuthering-waves",
+    "~/.steam/steam/steamapps/common/Wuthering Waves/Wuthering Waves Game",
+    "~/Games/Wuthering Waves/Wuthering Waves Game",
+    "~/.local/share/Steam/steamapps/common/Wuthering Waves/Wuthering Waves Game",
+    "/opt/wuthering-waves/wuthering-waves-game",
 ]
 
 def load_config() -> dict:
@@ -101,6 +101,60 @@ def save_config(cfg: dict):
             cfg._base = copy.deepcopy(dict(cfg))
         _invalidate_config_cache()
 
+def resolve_game_root(path: str) -> str | None:
+    """
+    Return the WuWa root (the directory directly containing Client/, Engine/, etc.)
+    for a selected root, parent folder (e.g. Steam's 'Wuthering Waves'),
+    child directory, or executable.
+    """
+    if not path or not isinstance(path, str):
+        return None
+    cleaned = path.strip().strip("'\"")
+    if not cleaned:
+        return None
+    current = os.path.realpath(os.path.expanduser(cleaned))
+    if not os.path.exists(current):
+        return None
+    if os.path.isfile(current):
+        current = os.path.dirname(current)
+
+    def _is_wuwa_root(d: str) -> bool:
+        if not os.path.isdir(d):
+            return False
+        if os.path.isfile(os.path.join(d, "Client", "Binaries", "Win64", GAME_EXE_NAME)):
+            return True
+        if os.path.isdir(os.path.join(d, "Client", "Binaries", "Win64")):
+            return True
+        if os.path.isdir(os.path.join(d, "Client")) and (
+            os.path.isdir(os.path.join(d, "Engine")) or os.path.isdir(os.path.join(d, "Client", "Content"))
+        ):
+            return True
+        return False
+
+    if _is_wuwa_root(current):
+        return current
+
+    # Check common subfolders (e.g. Steam / Epic installs with outer 'Wuthering Waves' dir)
+    for sub in ("Wuthering Waves Game", "wuthering-waves-game", "game"):
+        candidate = os.path.join(current, sub)
+        if _is_wuwa_root(candidate):
+            return candidate
+
+    # Traverse upward if user pointed to a subfolder or executable
+    chk = current
+    for _ in range(9):
+        if _is_wuwa_root(chk):
+            return chk
+        parent = os.path.dirname(chk)
+        if parent == chk:
+            break
+        chk = parent
+
+    if os.path.isdir(os.path.join(current, "Client")):
+        return current
+
+    return None
+
 def detect_game_path() -> str | None:
     """Try to auto-detect Wuthering Waves installation path (cached for 30s)."""
     now = time.monotonic()
@@ -115,11 +169,20 @@ def detect_game_path() -> str | None:
 def _detect_game_path_uncached() -> str | None:
     """Actual game path detection (expensive: reads config, scans dirs)."""
     cfg = load_config()
-    if cfg.get("game_path") and os.path.isdir(cfg["game_path"]):
-        return cfg["game_path"]
+    saved = cfg.get("game_path")
+    if saved:
+        resolved = resolve_game_root(saved)
+        if resolved:
+            return resolved
+        expanded = os.path.realpath(os.path.expanduser(saved))
+        if os.path.isdir(expanded):
+            return expanded
 
     for p in DEFAULT_SEARCH_PATHS:
         expanded = os.path.expanduser(p)
+        resolved = resolve_game_root(expanded)
+        if resolved:
+            return resolved
         if os.path.isdir(expanded):
             return expanded
 
@@ -140,16 +203,64 @@ def _detect_game_path_uncached() -> str | None:
             for m in re.finditer(r'"path"\s*"([^"]+)"', content):
                 lib_path = m.group(1).replace("\\\\", "/")
                 candidate = os.path.join(lib_path, "steamapps", "common", "Wuthering Waves")
+                resolved = resolve_game_root(candidate)
+                if resolved:
+                    return resolved
                 if os.path.isdir(candidate):
                     return candidate
         except Exception:
             pass
+
+    # Try Heroic Games Launcher
+    for hcp in [
+        os.path.expanduser("~/.config/heroic"),
+        os.path.expanduser("~/.var/app/com.heroicgameslauncher.hgl/config/heroic"),
+    ]:
+        sideload_file = os.path.join(hcp, "sideload_apps", "library.json")
+        if os.path.exists(sideload_file):
+            try:
+                with open(sideload_file, "r") as f:
+                    data = json.load(f)
+                    for g in data.get("games", []):
+                        title = str(g.get("title", "")).lower()
+                        exe = str(g.get("install", {}).get("executable", ""))
+                        if any(k in title for k in ("wuthering", "wuwa")) or "client-win64" in exe.lower():
+                            if exe:
+                                res = resolve_game_root(exe)
+                                if res:
+                                    return res
+            except Exception:
+                pass
+        legendary_installed = os.path.join(hcp, "legendaryConfig", "legendary", "installed.json")
+        if os.path.exists(legendary_installed):
+            try:
+                with open(legendary_installed, "r") as f:
+                    data = json.load(f)
+                    for app_name, info in data.items():
+                        title = str(info.get("title", "")).lower()
+                        if "wuthering" in title or "wuwa" in title:
+                            inst_path = info.get("install_path")
+                            if inst_path:
+                                res = resolve_game_root(inst_path)
+                                if res:
+                                    return res
+            except Exception:
+                pass
     return None
 
 def set_game_path(path: str):
+    root = resolve_game_root(path)
+    if not root:
+        cleaned = path.strip().strip("'\"") if path else ""
+        expanded = os.path.realpath(os.path.expanduser(cleaned))
+        if os.path.isdir(expanded):
+            root = expanded
+        else:
+            raise ValueError("Thư mục không tồn tại hoặc không hợp lệ")
     cfg = load_config()
-    cfg["game_path"] = path
+    cfg["game_path"] = root
     save_config(cfg)
+    return {"ok": True, "path": root}
 
 def get_pak_dir() -> str | None:
     game = detect_game_path()

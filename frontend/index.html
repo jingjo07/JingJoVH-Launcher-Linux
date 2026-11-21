@@ -1098,7 +1098,7 @@
 
 
   <!-- ── Game path modal ── -->
-  <div id="path-modal">
+  <div id="path-modal" onclick="if(event.target === this) closeGamePathModal()">
     <div class="path-card">
       <div class="path-title" id="path-title">Cấu hình đường dẫn game</div>
       <div class="path-desc" id="path-desc">
@@ -1106,14 +1106,19 @@
       </div>
       <div class="path-input-wrap">
         <input type="text" class="path-input" id="path-input" placeholder="/home/user/Games/WutheringWaves">
-        <button class="btn-modal primary" onclick="submitPath()">OK</button>
+        <button type="button" class="btn-modal secondary" id="btn-browse-game-path" onclick="browseGameFolder()" title="Duyệt thư mục">Chọn...</button>
+        <button type="button" class="btn-modal primary" onclick="submitPath()">OK</button>
       </div>
       <label class="prefix-input-wrap" id="prefix-input-wrap" for="prefix-input">
         <span>Wine/Proton prefix (tự nhận Heroic hoặc nhập thủ công)</span>
-        <input type="text" class="path-input" id="prefix-input" placeholder="/home/user/Games/Heroic/Prefixes/NTE">
+        <div class="path-input-wrap" style="margin-top: 4px;">
+          <input type="text" class="path-input" id="prefix-input" placeholder="/home/user/Games/Heroic/Prefixes/NTE">
+          <button type="button" class="btn-modal secondary" id="btn-browse-prefix-path" onclick="browsePrefixFolder()" title="Duyệt thư mục prefix">Chọn...</button>
+        </div>
       </label>
       <div class="path-modal-actions" style="margin-top: 10px; display: flex; gap: 8px;">
         <button type="button" class="btn-modal secondary" id="btn-modal-winedll" style="flex: 1; padding: 7px 12px; font-size: 12px;">Cài WINEDLLOVERRIDES (winhttp=n,b)</button>
+        <button type="button" class="btn-modal secondary" onclick="closeGamePathModal()" style="padding: 7px 16px; font-size: 12px;">Đóng</button>
       </div>
       <div class="modal-status" id="path-status"></div>
     </div>

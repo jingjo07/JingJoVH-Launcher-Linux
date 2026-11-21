@@ -1,2 +1,2 @@
 // Auto-generated from backend/version.py
-window.LAUNCHER_VERSION = "2.4";
+window.LAUNCHER_VERSION = "2.5";

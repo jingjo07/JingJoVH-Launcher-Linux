@@ -2251,11 +2251,58 @@ function showPathModal() {
   if (gamePathInput) gamePathInput.focus();
 }
 
+function closeGamePathModal() {
+  if (pathModal) pathModal.classList.remove("visible");
+}
+
+async function browseGameFolder() {
+  try {
+    const res = await ipc("pick_game_folder");
+    if (res && res.path && gamePathInput) {
+      gamePathInput.value = res.path;
+      gamePathInput.focus();
+    }
+  } catch (e) {
+    console.warn("Lỗi chọn thư mục game:", e);
+  }
+}
+
+async function browsePrefixFolder() {
+  try {
+    const res = await ipc("pick_prefix_folder");
+    if (res && res.path && prefixInput) {
+      prefixInput.value = res.path;
+      prefixInput.focus();
+    }
+  } catch (e) {
+    console.warn("Lỗi chọn thư mục prefix:", e);
+  }
+}
+
+if (gamePathInput) {
+  gamePathInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitPath();
+    }
+  });
+}
+
+if (prefixInput) {
+  prefixInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      submitPath();
+    }
+  });
+}
+
 async function submitPath() {
   const status = document.getElementById("path-status");
   const path = gamePathInput.value.trim();
   const prefix = prefixInput ? prefixInput.value.trim() : "";
   if (!path) return;
+  status.style.color = "";
   status.textContent = "Đang kiểm tra...";
   try {
     await ipc("set_game_path", { path });

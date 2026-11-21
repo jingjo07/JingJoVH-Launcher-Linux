@@ -66,7 +66,6 @@ const NTE_THEMES = [
 ];
 
 const THEMES = WUWA_THEMES;
-
 function getThemesForGame(gameId) {
   return gameId === "nte" ? NTE_THEMES : WUWA_THEMES;
 }

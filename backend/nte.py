@@ -68,7 +68,14 @@ STEAM_ROOTS = (
 
 def resolve_game_root(path: str) -> str | None:
     """Return the NTE root for a selected root, child directory, or executable."""
-    current = os.path.realpath(os.path.expanduser(path))
+    if not path or not isinstance(path, str):
+        return None
+    cleaned = path.strip().strip("'\"")
+    if not cleaned:
+        return None
+    current = os.path.realpath(os.path.expanduser(cleaned))
+    if not os.path.exists(current):
+        return None
     if os.path.isfile(current):
         current = os.path.dirname(current)
     for _ in range(9):
@@ -193,7 +200,12 @@ def detect_game_path() -> str | None:
 
 
 def _resolve_prefix(path: str) -> str | None:
-    prefix = os.path.realpath(os.path.expanduser(path))
+    if not path or not isinstance(path, str):
+        return None
+    cleaned = path.strip().strip("'\"")
+    if not cleaned:
+        return None
+    prefix = os.path.realpath(os.path.expanduser(cleaned))
     return prefix if os.path.isdir(os.path.join(prefix, "drive_c")) else None
 
 
