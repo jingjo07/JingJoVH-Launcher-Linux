@@ -1100,7 +1100,10 @@
   <!-- ── Game path modal ── -->
   <div id="path-modal" onclick="if(event.target === this) closeGamePathModal()">
     <div class="path-card">
-      <div class="path-title" id="path-title">Cấu hình đường dẫn game</div>
+      <div class="path-header">
+        <div class="path-title" id="path-title">Cấu hình đường dẫn game</div>
+        <button type="button" class="modal-close-btn" id="btn-close-path-modal" aria-label="Đóng cấu hình đường dẫn" onclick="closeGamePathModal()">×</button>
+      </div>
       <div class="path-desc" id="path-desc">
         Nhập đường dẫn thư mục Wuthering Waves (thư mục chứa Client/, Binaries/...):
       </div>
@@ -1125,9 +1128,6 @@
         </div>
       </label>
       <div class="modal-status" id="path-status"></div>
-      <div class="path-modal-actions" style="margin-top: 14px; display: flex; justify-content: flex-end;">
-        <button type="button" class="btn-modal secondary" onclick="closeGamePathModal()">Đóng</button>
-      </div>
     </div>
   </div>
 
