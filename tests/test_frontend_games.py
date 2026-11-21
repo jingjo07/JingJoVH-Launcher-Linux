@@ -221,9 +221,8 @@ class FrontendGameTests(unittest.TestCase):
 
         self.assertIn('id="ctx-winedlloverrides"', html)
         self.assertIn('id="drawer-item-winedll"', html)
-        self.assertIn('id="btn-modal-winedll"', html)
+        self.assertNotIn('id="btn-modal-winedll"', html)
         self.assertIn("drawerItemWineDll", app_text)
-        self.assertIn("btnModalWineDll", app_text)
 
     def test_dx11_quick_menu_is_disabled_for_nte(self):
         app = (ROOT / "frontend/app.js").read_text(encoding="utf-8")

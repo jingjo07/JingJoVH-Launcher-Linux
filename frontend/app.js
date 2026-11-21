@@ -1144,18 +1144,6 @@ if (drawerItemWineDll) {
   };
 }
 
-const btnModalWineDll = document.getElementById("btn-modal-winedll");
-if (btnModalWineDll) {
-  btnModalWineDll.onclick = async () => {
-    try {
-      const res = await ipc("install_wine_overrides");
-      toast(res.message || "Đã cấu hình WINEDLLOVERRIDES thành công!", "success");
-    } catch (e) {
-      toast("Lỗi: " + e.message, "error");
-    }
-  };
-}
-
 const ctxUpdateLauncher = document.getElementById("ctx-update-launcher");
 if (ctxUpdateLauncher) {
   ctxUpdateLauncher.onclick = () => {
